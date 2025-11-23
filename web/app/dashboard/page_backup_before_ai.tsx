@@ -1,5 +1,4 @@
 "use client";
-import { AIOptimizePanel } from "@/components/AIOptimizePanel";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
