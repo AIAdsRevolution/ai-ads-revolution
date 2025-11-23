@@ -1,194 +1,211 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-interface Campaign {
+type GeneratedItem = {
   id: string;
-  name: string;
-  status: string;
-  dailyBudget: number;
+  prompt: string;
+  channel: string;
+  result: string;
   createdAt: string;
-}
+};
 
-function getStats(index: number, dailyBudget: number) {
-  const impressions = 1000 + index * 500 + Math.round(dailyBudget * 10);
-  const ctr = 1.2 + index * 0.4; // %
-  const clicks = Math.round(impressions * (ctr / 100));
-  const conversions = Math.round(clicks * 0.05); // 5% dei click
-  return { impressions, ctr, clicks, conversions };
-}
+export default function AiAssistantPage() {
+  const [prompt, setPrompt] = useState("");
+  const [channel, setChannel] = useState("meta");
+  const [goal, setGoal] = useState("vendite");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<GeneratedItem[]>([]);
 
-function getRecommendation(c: Campaign, index: number) {
-  const stats = getStats(index, c.dailyBudget || 0);
+  async function handleGenerate(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
 
-  if (stats.conversions >= 10 && c.dailyBudget < 30) {
-    return {
-      label: "Aumenta budget",
-      severity: "high",
-      message:
-        "Questa campagna converte bene ma ha un budget relativamente basso. L'AI consiglia di aumentare il budget del 20–40% per scalare i risultati.",
-      stats,
-    };
-  }
-
-  if (stats.ctr < 1 && stats.impressions > 2000) {
-    return {
-      label: "Testa nuove creatività",
-      severity: "medium",
-      message:
-        "Tante impression ma CTR basso. L'AI suggerisce di testare nuovi titoli, immagini o video più aggressivi sul target.",
-      stats,
-    };
-  }
-
-  if (stats.conversions === 0 && stats.impressions > 3000) {
-    return {
-      label: "Valuta pausa / revisione",
-      severity: "medium",
-      message:
-        "Molte impression ma zero conversioni. L'AI consiglia di rivedere offerta, pagina di destinazione o targeting.",
-      stats,
-    };
-  }
-
-  if (stats.ctr >= 2 && stats.conversions > 0) {
-    return {
-      label: "Mantieni e monitora",
-      severity: "low",
-      message:
-        "La campagna ha buon CTR e converte. Mantieni il budget attuale e monitora l'andamento.",
-      stats,
-    };
-  }
-
-  return {
-    label: "Dati in raccolta",
-    severity: "low",
-    message:
-      "La campagna è ancora in fase iniziale. L'AI consiglia di attendere più dati prima di modificare budget o creatività.",
-    stats,
-  };
-}
-
-export default function AiOptimizationPage() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadCampaigns() {
-      try {
-        const res = await fetch("/api/campaigns");
-        const data = await res.json();
-        setCampaigns(data);
-      } catch (err) {
-        console.error("Errore nel caricamento campagne", err);
-      } finally {
-        setLoading(false);
-      }
+    if (!prompt.trim()) {
+      setError("Scrivi almeno un minimo di brief per la campagna.");
+      return;
     }
 
-    loadCampaigns();
-  }, []);
+    try {
+      setLoading(true);
 
-  const summary = campaigns.reduce(
-    (acc, c, index) => {
-      const { impressions, conversions } = getStats(index, c.dailyBudget || 0);
-      acc.impressions += impressions;
-      acc.conversions += conversions;
-      acc.budget += c.dailyBudget || 0;
-      return acc;
-    },
-    { impressions: 0, conversions: 0, budget: 0 }
-  );
+      const res = await fetch("/api/ai/generate-copy", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt,
+          channel,
+          goal,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Errore dalla API AI.");
+      }
+
+      const data = await res.json();
+
+      const resultText: string =
+        typeof data.result === "string"
+          ? data.result
+          : JSON.stringify(data.result, null, 2);
+
+      const item: GeneratedItem = {
+        id: Date.now().toString(),
+        prompt,
+        channel,
+        result: resultText,
+        createdAt: new Date().toLocaleString("it-IT"),
+      };
+
+      setHistory((prev) => [item, ...prev]);
+      setPrompt("");
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Errore sconosciuto dalla AI.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-slate-100 px-4 py-8">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-2xl font-bold mb-2">AI Optimization</h1>
-        <p className="text-sm text-slate-400 mb-6">
-          Qui l&apos;intelligenza artificiale analizza le tue campagne e ti
-          restituisce consigli pratici su budget, creatività e strategie.
-        </p>
-
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
-          <div className="bg-[#111827] border border-slate-800 rounded-2xl p-4">
-            <h3 className="text-xs text-slate-400 mb-1">Budget totale</h3>
-            <p className="text-2xl font-bold">
-              € {summary.budget.toFixed(2)}
+    <div className="h-full w-full px-4 py-4 md:px-6 md:py-6">
+      <div className="mx-auto max-w-5xl space-y-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
+          <div>
+            <h1 className="text-lg font-semibold tracking-tight text-slate-50">
+              AI Campaign Assistant
+            </h1>
+            <p className="text-xs text-slate-400">
+              ChatGPT + motore neurale di AI Ads Revolution per generare copy
+              ottimizzati per le tue campagne.
             </p>
           </div>
-          <div className="bg-[#111827] border border-slate-800 rounded-2xl p-4">
-            <h3 className="text-xs text-slate-400 mb-1">Impression simulate</h3>
-            <p className="text-2xl font-bold">
-              {summary.impressions.toLocaleString("it-IT")}
-            </p>
-          </div>
-          <div className="bg-[#111827] border border-slate-800 rounded-2xl p-4">
-            <h3 className="text-xs text-slate-400 mb-1">
-              Conversioni simulate
-            </h3>
-            <p className="text-2xl font-bold">
-              {summary.conversions.toLocaleString("it-IT")}
-            </p>
+          <div className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-[11px] text-emerald-300">
+            AI attiva · Beta privata
           </div>
         </div>
 
-        {loading ? (
-          <div className="text-sm text-slate-400">Analisi in corso...</div>
-        ) : campaigns.length === 0 ? (
-          <div className="text-sm text-slate-400">
-            Nessuna campagna da analizzare. Crea una campagna nella sezione
-            &quot;Campagne&quot;.
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {campaigns.map((c, index) => {
-              const rec = getRecommendation(c, index);
-              const badgeColor =
-                rec.severity === "high"
-                  ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
-                  : rec.severity === "medium"
-                  ? "bg-amber-500/20 text-amber-200 border border-amber-500/40"
-                  : "bg-emerald-500/15 text-emerald-200 border border-emerald-500/30";
+        {/* Form */}
+        <form
+          onSubmit={handleGenerate}
+          className="grid gap-4 rounded-2xl border border-slate-800 bg-slate-950/80 p-4 sm:p-5 md:p-6"
+        >
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="md:col-span-2">
+              <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Brief campagna
+              </label>
+              <textarea
+                className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950/80 px-3 py-2 text-xs text-slate-100 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/60 min-h-[90px]"
+                placeholder="Descrivi il prodotto, il pubblico e il tono della campagna. Es: e-commerce abbigliamento, pubblico 25-45, obiettivo vendite, tono premium."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+              />
+            </div>
 
-              return (
-                <div
-                  key={c.id}
-                  className="bg-[#111827] border border-slate-800 rounded-2xl p-4"
+            <div className="space-y-3">
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                  Canale
+                </label>
+                <select
+                  className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-100 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/60"
+                  value={channel}
+                  onChange={(e) => setChannel(e.target.value)}
                 >
-                  <div className="flex justify-between items-center mb-2">
-                    <div>
-                      <h2 className="text-sm font-semibold">{c.name}</h2>
-                      <p className="text-[11px] text-slate-400">
-                        Budget: € {c.dailyBudget.toFixed(2)} · CTR stimato:{" "}
-                        {rec.stats.ctr.toFixed(1)}% · Conv:{" "}
-                        {rec.stats.conversions}
-                      </p>
-                    </div>
-                    <span
-                      className={`text-[11px] px-2 py-1 rounded-full ${badgeColor}`}
-                    >
-                      {rec.label}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-300 mb-2">{rec.message}</p>
-                  <p className="text-[11px] text-slate-500">
-                    Impression stimate:{" "}
-                    {rec.stats.impressions.toLocaleString("it-IT")} · Click
-                    stimati: {rec.stats.clicks.toLocaleString("it-IT")}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                  <option value="meta">Meta (Facebook/Instagram)</option>
+                  <option value="google">Google Ads (Search/Display)</option>
+                  <option value="tiktok">TikTok Ads</option>
+                  <option value="linkedin">LinkedIn Ads</option>
+                  <option value="email">Email marketing</option>
+                </select>
+              </div>
 
-        <p className="text-[11px] text-slate-500 mt-6">
-          Nota: queste raccomandazioni si basano su simulazioni interne della
-          piattaforma. Quando AI Ads Revolution sarà collegata ai dati reali
-          (impression, click, conversioni), questo modulo userà le metriche
-          vere per ottimizzare in automatico.
-        </p>
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                  Obiettivo
+                </label>
+                <select
+                  className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-100 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/60"
+                  value={goal}
+                  onChange={(e) => setGoal(e.target.value)}
+                >
+                  <option value="vendite">Vendite / acquisti</option>
+                  <option value="lead">Lead / contatti</option>
+                  <option value="traffic">Traffico sito</option>
+                  <option value="awareness">Brand awareness</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-1 w-full rounded-lg bg-emerald-500 px-3 py-2 text-xs font-semibold text-slate-950 shadow-lg shadow-emerald-500/40 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? "Generazione in corso..." : "Genera copy con AI"}
+              </button>
+
+              {error && (
+                <p className="text-[11px] text-rose-400 bg-rose-950/40 border border-rose-900/60 rounded-lg px-2 py-1">
+                  {error}
+                </p>
+              )}
+            </div>
+          </div>
+        </form>
+
+        {/* Storia delle generazioni */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              Storico generazioni
+            </h2>
+            {history.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setHistory([])}
+                className="text-[11px] text-slate-400 hover:text-slate-200"
+              >
+                Svuota storico
+              </button>
+            )}
+          </div>
+
+          {history.length === 0 ? (
+            <p className="text-[11px] text-slate-500">
+              Qui vedrai lo storico dei copy generati dalla AI per le tue
+              campagne.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {history.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-2xl border border-slate-800 bg-slate-950/80 p-3.5 text-xs space-y-2"
+                >
+                  <div className="flex items-center justify-between text-[11px] text-slate-400">
+                    <span className="font-semibold text-slate-300">
+                      {item.channel.toUpperCase()} · {item.goal || "campagna"}
+                    </span>
+                    <span>{item.createdAt}</span>
+                  </div>
+                  <div className="text-[11px] text-slate-400">
+                    <span className="font-semibold text-slate-300">Brief:</span>{" "}
+                    {item.prompt}
+                  </div>
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-2.5 text-[11px] text-slate-100 whitespace-pre-wrap">
+                    {item.result}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
