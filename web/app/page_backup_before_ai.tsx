@@ -1,5 +1,4 @@
 "use client";
-import { AIMetrics } from "@/components/AIMetrics";
 
 import Link from "next/link";
 import NeuralBackground from "../components/NeuralBackground";
@@ -43,7 +42,6 @@ const socials = [
 export default function HomePage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-black text-slate-100">
-  <AIMetrics />
       <NeuralBackground />
 
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-4 pb-10 pt-6 md:px-6 md:pt-8">
