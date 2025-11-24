@@ -4,63 +4,53 @@ export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email e password sono obbligatorie." },
-        { status: 400 }
-      );
-    }
-
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    const res = await fetch(
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error("Supabase URL o ANON KEY mancanti nelle env");
+      return NextResponse.json(
+        { error: "Configurazione Supabase non valida lato server." },
+        { status: 500 }
+      );
+    }
+
+    const headers: Record<string, string> = {
+      apikey: supabaseAnonKey,
+      "Content-Type": "application/json",
+    };
+
+    const response = await fetch(
       `${supabaseUrl}/auth/v1/token?grant_type=password`,
       {
         method: "POST",
-        headers: {
-          apikey: supabaseAnonKey,
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify({ email, password }),
       }
     );
 
-    const data = await res.json().catch(() => ({}));
+    const data = await response.json();
 
-    if (!res.ok) {
-      const errorMsg =
-        data?.error_description ||
-        data?.error ||
-        "Credenziali non valide.";
-
-      if (
-        errorMsg.toLowerCase().includes("confirm") ||
-        errorMsg.toLowerCase().includes("email")
-      ) {
-        return NextResponse.json(
-          {
-            error:
-              "Email non confermata. Controlla la posta e clicca sul link di attivazione.",
-          },
-          { status: 401 }
-        );
-      }
-
-      return NextResponse.json({ error: errorMsg }, { status: 401 });
+    if (!response.ok) {
+      const message =
+        (data && (data.error_description || data.error)) ||
+        "Login con Supabase fallito";
+      return NextResponse.json({ error: message }, { status: response.status });
     }
 
+    // Qui puoi restituire i dati che vuoi usare nella dashboard
     return NextResponse.json(
       {
-        success: true,
-        message: "Login effettuato.",
-        session: data,
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        user: data.user,
       },
       { status: 200 }
     );
-  } catch (err) {
+  } catch (error) {
+    console.error("Errore nella route /api/auth/login:", error);
     return NextResponse.json(
-      { error: "Errore inatteso." },
+      { error: "Errore inatteso durante il login." },
       { status: 500 }
     );
   }
