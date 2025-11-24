@@ -8,6 +8,7 @@ type GeneratedItem = {
   channel: string;
   result: string;
   createdAt: string;
+  goal?: string;
 };
 
 export default function AiAssistantPage() {
