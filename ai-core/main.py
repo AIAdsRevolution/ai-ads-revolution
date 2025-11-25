@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 app = FastAPI(title="AI Ads Revolution - AI Core", version="0.1.0")
 
+# CORS per permettere chiamate dal frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # in futuro puoi restringere al dominio del sito
@@ -46,6 +47,10 @@ def health():
 
 @app.get("/metrics/demo")
 def metrics_demo():
+    """
+    Endpoint DEMO: genera numeri finti ma realistici
+    per popolare la homepage quando non ci sono ancora dati reali.
+    """
     ctr = round(random.uniform(0.28, 0.35), 4)
     cpc = round(random.uniform(0.17, 0.24), 2)
     roas = round(random.uniform(4.2, 5.2), 1)
@@ -53,15 +58,19 @@ def metrics_demo():
     return {
         "ai_on": True,
         "intent": "alto",
-        "ctr": ctr,
-        "cpc": cpc,
-        "roas": roas,
+        "ctr": ctr,      # 0.32 = 32%
+        "cpc": cpc,      # es. 0.21 €
+        "roas": roas,    # es. 4.7x
         "window_days": 28,
     }
 
 
 @app.post("/metrics/update")
 async def metrics_update(payload: MetricsUpdate):
+    """
+    Endpoint REALE: salva una riga in campaign_metrics su Supabase
+    e restituisce CTR, CPC, ROAS calcolati.
+    """
     supabase_url, service_key = get_supabase_config()
 
     rest_url = f"{supabase_url}/rest/v1/campaign_metrics"
@@ -114,7 +123,7 @@ async def metrics_update(payload: MetricsUpdate):
     return {
         "ai_on": True,
         "intent": "alto",
-        "ctr": round(ctr * 100, 1),
+        "ctr": round(ctr * 100, 1),  # percentuale
         "cpc": round(cpc, 2),
         "roas": round(roas, 1),
         "window_days": 28,
