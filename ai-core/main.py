@@ -1,21 +1,45 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-from typing import Optional
+import os
 import random
+from datetime import date
+from typing import Optional
 
-app = FastAPI(
-    title="AI Ads Revolution - AI Core",
-    version="0.1.0",
-    description="Motore neurale di advertising (demo V1).",
+import httpx
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+app = FastAPI(title="AI Ads Revolution - AI Core", version="0.1.0")
+
+# CORS (permette al frontend di chiamare AI Core)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # in futuro potrai restringerlo al dominio del sito
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
-class CampaignContext(BaseModel):
-    daily_budget: float
-    vertical: Optional[str] = None
-    past_ctr: Optional[float] = None  # es. 0.18 = 18%
-    past_roas: Optional[float] = None  # es. 3.2 = 3.2x
-    risk_level: Optional[str] = "normal"  # "low", "normal", "aggressive"
+class MetricsUpdate(BaseModel):
+    campaign_id: str
+    impressions: int
+    clicks: int
+    cost: float
+    revenue: float
+    # opzionale: se vuoi forzare una data diversa da oggi
+    date: Optional[date] = None
+
+
+def get_supabase_config():
+    url = os.getenv("SUPABASE_URL")
+    service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+
+    if not url or not service_key:
+        raise RuntimeError("SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY mancanti nelle variabili ambiente")
+
+    # rimuoviamo eventuale slash finale
+    url = url.rstrip("/")
+    return url, service_key
 
 
 @app.get("/health")
@@ -26,33 +50,15 @@ def health():
 @app.get("/metrics/demo")
 def metrics_demo():
     """
-    Demo del motore neurale:
-    restituisce CTR, CPC, ROAS e stato AI sulla base di logica semplice.
+    Endpoint DEMO che genera valori casuali (lo manteniamo per la homepage).
     """
-    base_ctr = 0.32
-    base_cpc = 0.21
-    base_roas = 4.7
-
-    jitter_ctr = base_ctr + random.uniform(-0.02, 0.02)
-    jitter_cpc = base_cpc + random.uniform(-0.03, 0.03)
-    jitter_roas = base_roas + random.uniform(-0.4, 0.4)
-
-    ctr = max(0.05, min(jitter_ctr, 0.6))
-    cpc = max(0.05, min(jitter_cpc, 2.0))
-    roas = max(1.0, min(jitter_roas, 10.0))
-
-    if roas >= 5 and ctr >= 0.3:
-        intent = "altissimo"
-    elif roas >= 4:
-        intent = "alto"
-    elif roas >= 3:
-        intent = "medio"
-    else:
-        intent = "basso"
+    ctr = round(random.uniform(0.28, 0.35), 4)
+    cpc = round(random.uniform(0.17, 0.24), 2)
+    roas = round(random.uniform(4.2, 5.2), 1)
 
     return {
         "ai_on": True,
-        "intent": intent,
+        "intent": "alto",
         "ctr": ctr,
         "cpc": cpc,
         "roas": roas,
@@ -60,42 +66,77 @@ def metrics_demo():
     }
 
 
-@app.post("/optimize")
-def optimize(ctx: CampaignContext):
+@app.post("/metrics/update")
+async def metrics_update(payload: MetricsUpdate):
     """
-    Finta ottimizzazione bid + allocazione budget,
-    da sostituire più avanti con vera rete neurale.
+    Endpoint REALE.
+    - Salva una riga nella tabella campaign_metrics su Supabase
+    - Ritorna CTR, CPC, ROAS calcolati in tempo reale
     """
-    score = 1.0
+    supabase_url, service_key = get_supabase_config()
 
-    if ctx.past_ctr and ctx.past_ctr > 0:
-        score *= 1.0 + (ctx.past_ctr - 0.15) * 2
+    rest_url = f"{supabase_url}/rest/v1/campaign_metrics"
 
-    if ctx.past_roas and ctx.past_roas > 0:
-        score *= 1.0 + (ctx.past_roas - 3.0) * 0.3
+    # se non viene passata una data, usiamo oggi
+    metric_date = payload.date or date.today()
 
-    if ctx.risk_level == "low":
-        score *= 0.8
-    elif ctx.risk_level == "aggressive":
-        score *= 1.2
-
-    score = max(0.4, min(score, 1.8))
-
-    base_bid = 0.25
-    recommended_bid = base_bid * score
-
-    daily_budget = ctx.daily_budget
-    prospecting_budget = daily_budget * min(0.6, 0.2 * score + 0.3)
-    retargeting_budget = daily_budget - prospecting_budget
-
-    return {
-        "recommended_bid": round(recommended_bid, 3),
-        "prospecting_budget": round(prospecting_budget, 2),
-        "retargeting_budget": round(retargeting_budget, 2),
-        "score": round(score, 2),
-        "notes": [
-            "Modello V1 basato su regole.",
-            "In futuro sostituibile con rete neurale addestrata.",
-        ],
+    supabase_row = {
+        "campaign_id": payload.campaign_id,
+        "date": metric_date.isoformat(),
+        "impressions": payload.impressions,
+        "clicks": payload.clicks,
+        "cost": payload.cost,
+        "revenue": payload.revenue,
     }
 
+    headers = {
+        "apikey": service_key,
+        "Authorization": f"Bearer {service_key}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation",
+    }
+
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        try:
+            resp = await client.post(rest_url, headers=headers, json=supabase_row)
+        except httpx.RequestError as e:
+            raise HTTPException(status_code=502, detail=f"Errore di rete verso Supabase: {str(e)}")
+
+    if resp.status_code >= 400:
+        raise HTTPException(
+            status_code=resp.status_code,
+            detail={"error": "Supabase error", "body": resp.text},
+        )
+
+    try:
+        data = resp.json()
+        # Supabase con Prefer=return=representation ritorna una lista di righe, prendiamo la prima
+        row = data[0] if isinstance(data, list) and data else data
+    except Exception:
+        row = supabase_row
+
+    # calcolo metriche
+    impressions = payload.impressions
+    clicks = payload.clicks
+    cost = payload.cost
+    revenue = payload.revenue
+
+    ctr = (clicks / impressions) if impressions > 0 else 0.0
+    cpc = (cost / clicks) if clicks > 0 else 0.0
+    roas = (revenue / cost) if cost > 0 else 0.0
+
+    return {
+        "ai_on": True,
+        "intent": "alto",
+        "ctr": round(ctr * 100, 1),  # percentuale (es. 32.5)
+        "cpc": round(cpc, 2),
+        "roas": round(roas, 1),
+        "window_days": 28,
+        "saved_row": row,
+    }
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", "8001")), reload=True)
