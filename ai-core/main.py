@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 app = FastAPI(title="AI Ads Revolution - AI Core", version="0.1.0")
 
-# CORS per permettere chiamate dal frontend
+# CORS per chiamate dal frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # in futuro puoi restringere al dominio del sito
@@ -34,7 +34,8 @@ def get_supabase_config():
     service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
     if not url or not service_key:
-        raise RuntimeError("SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY mancanti nelle variabili ambiente")
+        raise RuntimeError("SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY 
+mancanti nelle variabili ambiente")
 
     url = url.rstrip("/")
     return url, service_key
@@ -95,9 +96,11 @@ async def metrics_update(payload: MetricsUpdate):
 
     async with httpx.AsyncClient(timeout=5.0) as client:
         try:
-            resp = await client.post(rest_url, headers=headers, json=supabase_row)
+            resp = await client.post(rest_url, headers=headers, 
+json=supabase_row)
         except httpx.RequestError as e:
-            raise HTTPException(status_code=502, detail=f"Errore di rete verso Supabase: {str(e)}")
+            raise HTTPException(status_code=502, detail=f"Errore di rete 
+verso Supabase: {str(e)}")
 
     if resp.status_code >= 400:
         raise HTTPException(
@@ -134,4 +137,6 @@ async def metrics_update(payload: MetricsUpdate):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", "8001")), reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", 
+"8001")), reload=True)
+
