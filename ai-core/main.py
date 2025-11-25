@@ -10,10 +10,9 @@ from pydantic import BaseModel
 
 app = FastAPI(title="AI Ads Revolution - AI Core", version="0.1.0")
 
-# CORS (permette al frontend di chiamare AI Core)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # in futuro potrai restringerlo al dominio del sito
+    allow_origins=["*"],  # in futuro puoi restringere al dominio del sito
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -26,7 +25,6 @@ class MetricsUpdate(BaseModel):
     clicks: int
     cost: float
     revenue: float
-    # opzionale: se vuoi forzare una data diversa da oggi
     date: Optional[date] = None
 
 
@@ -37,7 +35,6 @@ def get_supabase_config():
     if not url or not service_key:
         raise RuntimeError("SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY mancanti nelle variabili ambiente")
 
-    # rimuoviamo eventuale slash finale
     url = url.rstrip("/")
     return url, service_key
 
@@ -49,9 +46,6 @@ def health():
 
 @app.get("/metrics/demo")
 def metrics_demo():
-    """
-    Endpoint DEMO che genera valori casuali (lo manteniamo per la homepage).
-    """
     ctr = round(random.uniform(0.28, 0.35), 4)
     cpc = round(random.uniform(0.17, 0.24), 2)
     roas = round(random.uniform(4.2, 5.2), 1)
@@ -68,16 +62,10 @@ def metrics_demo():
 
 @app.post("/metrics/update")
 async def metrics_update(payload: MetricsUpdate):
-    """
-    Endpoint REALE.
-    - Salva una riga nella tabella campaign_metrics su Supabase
-    - Ritorna CTR, CPC, ROAS calcolati in tempo reale
-    """
     supabase_url, service_key = get_supabase_config()
 
     rest_url = f"{supabase_url}/rest/v1/campaign_metrics"
 
-    # se non viene passata una data, usiamo oggi
     metric_date = payload.date or date.today()
 
     supabase_row = {
@@ -110,12 +98,10 @@ async def metrics_update(payload: MetricsUpdate):
 
     try:
         data = resp.json()
-        # Supabase con Prefer=return=representation ritorna una lista di righe, prendiamo la prima
         row = data[0] if isinstance(data, list) and data else data
     except Exception:
         row = supabase_row
 
-    # calcolo metriche
     impressions = payload.impressions
     clicks = payload.clicks
     cost = payload.cost
@@ -128,7 +114,7 @@ async def metrics_update(payload: MetricsUpdate):
     return {
         "ai_on": True,
         "intent": "alto",
-        "ctr": round(ctr * 100, 1),  # percentuale (es. 32.5)
+        "ctr": round(ctr * 100, 1),
         "cpc": round(cpc, 2),
         "roas": round(roas, 1),
         "window_days": 28,
