@@ -1,18 +1,20 @@
 import os
-from datetime import datetime, date
-from typing import Optional
+from datetime import date
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from dotenv import load_dotenv
 import httpx
 
-app = FastAPI(
-    title="AI Ads Revolution – AI Core",
-    version="0.1.0",
-)
+load_dotenv()
+
+app = FastAPI()
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 
-class MetricsUpdateRequest(BaseModel):
+class MetricsUpdate(BaseModel):
     campaign_id: str
     impressions: int
     clicks: int
@@ -21,95 +23,81 @@ class MetricsUpdateRequest(BaseModel):
 
 
 @app.get("/health")
-def health():
-    return {
-        "status": "ok",
-        "service": "ai-core",
-        "version": "0.1.0",
-    }
+async def health():
+    return {"status": "ok", "service": "ai-core", "version": "0.2.0"}
 
 
 @app.get("/metrics/demo")
-def metrics_demo():
-    """
-    Endpoint DEMO: genera numeri casuali/di esempio.
-    Rimane per compatibilità, ma non usa il database.
-    """
-    # valori demo fissi per ora
-    ctr = 31.0
-    cpc = 0.21
-    roas = 4.7
-
+async def metrics_demo():
     return {
         "ai_on": True,
         "intent": "alto",
-        "ctr": ctr,
-        "cpc": cpc,
-        "roas": roas,
+        "ctr": 31.0,
+        "cpc": 0.21,
+        "roas": 4.7,
         "window_days": 28,
-        "saved_row": None,
     }
 
 
 @app.post("/metrics/update")
-async def metrics_update(payload: MetricsUpdateRequest):
+async def metrics_update(payload: MetricsUpdate):
     """
-    Endpoint REALE:
-    - calcola CTR, CPC, ROAS dai dati inviati
-    - prova a salvare una riga su Supabase (tabella campaign_metrics)
-    - anche se il salvataggio fallisce, ritorna comunque i valori calcolati
+    Riceve le metriche della campagna e le salva su Supabase
+    nella tabella campaign_metrics, poi ritorna i KPI calcolati.
     """
-    impressions = payload.impressions
-    clicks = payload.clicks
-    cost = payload.cost
-    revenue = payload.revenue
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="Supabase non è configurato (manca SUPABASE_URL o 
+SUPABASE_SERVICE_ROLE_KEY).",
+        )
 
-    ctr = (clicks / impressions * 100.0) if impressions > 0 else 0.0
-    cpc = (cost / clicks) if clicks > 0 else 0.0
-    roas = (revenue / cost) if cost > 0 else 0.0
+    ctr = (payload.clicks / payload.impressions * 100.0) if 
+payload.impressions > 0 else 0.0
+    cpc = (payload.cost / payload.clicks) if payload.clicks > 0 else 0.0
+    roas = (payload.revenue / payload.cost) if payload.cost > 0 else 0.0
 
-    saved_row: Optional[dict] = None
+    supabase_rest_url = f"{SUPABASE_URL}/rest/v1/campaign_metrics"
 
-    supabase_url = os.getenv("SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    row_to_insert = {
+        "campaign_id": payload.campaign_id,
+        "impressions": payload.impressions,
+        "clicks": payload.clicks,
+        "cost": payload.cost,
+        "revenue": payload.revenue,
+        "date": date.today().isoformat(),
+    }
 
-    # Se le variabili non ci sono, non tentiamo nemmeno il salvataggio
-    if supabase_url and supabase_key:
+    headers = {
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation",
+    }
+
+    saved_row = None
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
         try:
-            # Endpoint REST di Supabase
-            rest_url = supabase_url.rstrip("/") + "/rest/v1/campaign_metrics"
-
-            # Corpo dell'insert
-            payload_row = {
-                "campaign_id": payload.campaign_id,
-                "date": date.today().isoformat(),
-                "impressions": impressions,
-                "clicks": clicks,
-                "cost": cost,
-                "revenue": revenue,
-            }
-
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.post(
-                    rest_url,
-                    headers={
-                        "apikey": supabase_key,
-                        "Authorization": f"Bearer {supabase_key}",
-                        "Content-Type": "application/json",
-                        "Prefer": "return=representation",
-                    },
-                    json=payload_row,
-                )
-                resp.raise_for_status()
+            resp = await client.post(
+                supabase_rest_url,
+                json=row_to_insert,
+                headers=headers,
+            )
+            if resp.status_code in (200, 201):
                 data = resp.json()
                 if isinstance(data, list) and data:
                     saved_row = data[0]
                 else:
-                    saved_row = None
-
+                    saved_row = data
+            else:
+                # In produzione potremmo loggare meglio l'errore
+                print(
+                    f"[AI-CORE] Errore Supabase: 
+status={resp.status_code}, body={resp.text}"
+                )
         except Exception as e:
-            # NON mandiamo più errore 500: logghiamo e basta
-            print("Supabase error in /metrics/update:", repr(e))
+            print(f"[AI-CORE] Eccezione chiamata Supabase: {e}")
 
     return {
         "ai_on": True,
@@ -131,3 +119,4 @@ if __name__ == "__main__":
         port=int(os.getenv("PORT", "8001")),
         reload=True,
     )
+
