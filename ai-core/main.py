@@ -24,7 +24,7 @@ class MetricsUpdate(BaseModel):
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "ai-core", "version": "0.2.0"}
+    return {"status": "ok", "service": "ai-core", "version": "0.3.0"}
 
 
 @app.get("/metrics/demo")
@@ -89,21 +89,13 @@ async def metrics_update(payload: MetricsUpdate):
                 else:
                     saved_row = data
             else:
+                # Errore “loggato” ma NON buttare giù tutto
                 print(
                     f"[AI-CORE] Errore Supabase: status={resp.status_code}, body={resp.text}"
                 )
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Errore inserimento Supabase (status {resp.status_code})",
-                )
-        except HTTPException:
-            raise
         except Exception as e:
+            # Qui vediamo l’errore vero
             print(f"[AI-CORE] Eccezione chiamata Supabase: {e}")
-            raise HTTPException(
-                status_code=500,
-                detail="Errore interno durante la chiamata a Supabase.",
-            )
 
     return {
         "ai_on": True,
