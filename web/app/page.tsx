@@ -1,6 +1,6 @@
 "use client";
-import { AIMetrics } from "@/components/AIMetrics";
 
+import { AIMetrics } from "@/components/AIMetrics";
 import Link from "next/link";
 import NeuralBackground from "../components/NeuralBackground";
 
@@ -40,10 +40,35 @@ const socials = [
   { label: "TT", tag: "TikTok" },
 ];
 
+async function handleBasicCheckout() {
+  try {
+    const res = await fetch("/api/billing/create-checkout-session", {
+      method: "POST",
+    });
+
+    if (!res.ok) {
+      console.error("Errore Stripe:", await res.text());
+      alert("Errore nell'attivazione del piano. Riprova tra poco.");
+      return;
+    }
+
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      console.error("Risposta Stripe senza URL:", data);
+      alert("Non è stato possibile aprire la pagina di pagamento.");
+    }
+  } catch (err) {
+    console.error("Errore di rete Stripe:", err);
+    alert("Problema di connessione con Stripe. Riprova tra poco.");
+  }
+}
+
 export default function HomePage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-black text-slate-100">
-  <AIMetrics />
+      <AIMetrics />
       <NeuralBackground />
 
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-4 pb-10 pt-6 md:px-6 md:pt-8">
@@ -92,7 +117,7 @@ export default function HomePage() {
 
         {/* HERO */}
         <section className="mt-10 flex flex-col gap-10 lg:mt-16 lg:flex-row lg:items-start">
-          {/* Colonna sinistra: testo principale */}
+          {/* Colonna sinistra */}
           <div className="flex-1 space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/5 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-emerald-300">
               <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
@@ -110,9 +135,9 @@ export default function HomePage() {
                 </span>
               </h1>
               <p className="mt-4 max-w-xl text-sm text-slate-300 md:text-base">
-                AI Ads Revolution analizza milioni di segnali in tempo reale per ottimizzare visibilità,
-                traffico e conversioni. Raggiungi gli acquirenti nel momento esatto in cui stanno
-                cercando prodotti come i tuoi.
+                AI Ads Revolution analizza milioni di segnali in tempo reale per ottimizzare
+                visibilità, traffico e conversioni. Raggiungi gli acquirenti nel momento esatto
+                in cui stanno cercando prodotti come i tuoi.
               </p>
             </div>
 
@@ -324,8 +349,8 @@ export default function HomePage() {
           <div className="max-w-3xl">
             <h3 className="text-lg font-semibold">Piani e prezzi</h3>
             <p className="mt-2 text-sm text-slate-300">
-              Inizia con il piano Basic e scala quando sei pronto. Nessun costo di setup, nessun vincolo
-              annuale. Paghi solo per quello che usi.
+              Inizia con il piano Basic e scala quando sei pronto. Nessun costo di setup, nessun
+              vincolo annuale. Paghi solo per quello che usi.
             </p>
           </div>
 
@@ -349,7 +374,11 @@ export default function HomePage() {
               <li>• Supporto email per la fase beta</li>
             </ul>
 
-            <button className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-emerald-400 transition-colors">
+            <button
+              type="button"
+              onClick={handleBasicCheckout}
+              className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-emerald-400 transition-colors"
+            >
               Attiva piano Basic
             </button>
 
