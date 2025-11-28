@@ -363,7 +363,7 @@ export default function HomePage() {
             </p>
 
             <div className="mt-4 flex items-baseline gap-2">
-              <span className="text-2xl font-semibold text-emerald-300">€ 29</span>
+              <span className="text-2xl font-semibold text-emerald-300">€ 19</span>
               <span className="text-xs text-slate-400">/ mese, cancellabile in qualsiasi momento</span>
             </div>
 
