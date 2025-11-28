@@ -1,535 +1,358 @@
 "use client";
-import { AIOptimizePanel } from "@/components/AIOptimizePanel";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import type { User } from "@supabase/supabase-js";
-import { supabase } from "../../lib/supabaseClient";
 
-type StatCard = {
-  label: string;
-  helper: string;
+type AiMetrics = {
+  ai_on?: boolean;
+  intent?: string;
+  ctr?: number;
+  cpc?: number;
+  roas?: number;
+  window_days?: number;
 };
 
-type Campaign = {
-  id: string;
-  name: string;
-  status: string;
-  daily_budget: number;
-  objective: string | null;
+type CampaignRow = {
+  campaign_id: string;
+  impressions: number;
+  clicks: number;
+  cost: number;
+  revenue: number;
   created_at: string;
 };
 
-const STAT_CARDS: StatCard[] = [
-  {
-    label: "Spesa totale (ultimo mese)",
-    helper: "Appena lanci le prime campagne, vedrai qui la spesa aggregata.",
-  },
-  {
-    label: "Impression totali",
-    helper: "Il numero di volte in cui gli annunci sono stati mostrati.",
-  },
-  {
-    label: "Click totali",
-    helper: "Click complessivi sugli annunci nelle tue campagne.",
-  },
-];
+type DashboardMetrics = {
+  rows: CampaignRow[];
+  totals: {
+    impressions: number;
+    clicks: number;
+    cost: number;
+    revenue: number;
+    ctr: number;
+    cpc: number;
+    roas: number;
+  };
+};
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loadingCampaigns, setLoadingCampaigns] = useState(true);
+  const [aiMetrics, setAiMetrics] = useState<AiMetrics | null>(null);
+  const [dbMetrics, setDbMetrics] = useState<DashboardMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [showNewForm, setShowNewForm] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newBudget, setNewBudget] = useState("");
-  const [newObjective, setNewObjective] = useState("");
-  const [creating, setCreating] = useState(false);
-
-  const [loggingOut, setLoggingOut] = useState(false);
-
-  // Stato per Assistente AI
-  const [aiProductDescription, setAiProductDescription] = useState("");
-  const [aiGoal, setAiGoal] = useState("Aumentare le vendite");
-  const [aiLanguage, setAiLanguage] = useState("Italiano");
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
-  const [aiResult, setAiResult] = useState("");
-
   useEffect(() => {
-    const load = async () => {
-      setError(null);
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
+    async function load() {
+      try {
+        setLoading(true);
 
-      if (error) {
-        console.error("Errore supabase.auth.getUser:", error);
-        setError(error.message || "Errore nel recupero utente.");
-        setLoadingCampaigns(false);
-        return;
+        const [aiRes, dbRes] = await Promise.all([
+          fetch("/api/ai/metrics", { cache: "no-store" }),
+          fetch("/api/dashboard/metrics", { cache: "no-store" }),
+        ]);
+
+        if (aiRes.ok) {
+          const aiData = await aiRes.json();
+          setAiMetrics(aiData);
+        }
+
+        if (dbRes.ok) {
+          const dbData = await dbRes.json();
+          setDbMetrics(dbData);
+        } else {
+          console.error("Errore metrics dashboard:", await dbRes.text());
+        }
+      } catch (err) {
+        console.error("Errore caricamento dashboard:", err);
+        setError("Errore nel caricamento dei dati. Riprova tra poco.");
+      } finally {
+        setLoading(false);
       }
-
-      if (!user) {
-        window.location.href = "/auth/login";
-        return;
-      }
-
-      setUser(user);
-
-      const { data, error: campaignsError } = await supabase
-        .from("campaigns")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (campaignsError) {
-        console.error("Errore caricamento campaigns:", campaignsError);
-        setError(
-          campaignsError.message ||
-            "Impossibile caricare le campagne dal database."
-        );
-      } else {
-        setCampaigns((data || []) as Campaign[]);
-      }
-
-      setLoadingCampaigns(false);
-    };
+    }
 
     load();
   }, []);
 
-  const handleLogout = async () => {
-    setLoggingOut(true);
-    try {
-      await supabase.auth.signOut();
-      window.location.href = "/auth/login";
-    } catch (e) {
-      setLoggingOut(false);
-      alert("Errore durante il logout. Riprova.");
-    }
-  };
+  const ctrDisplay =
+    aiMetrics?.ctr ??
+    dbMetrics?.totals?.ctr ??
+    0;
 
-  const handleCreateCampaign = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
+  const cpcDisplay =
+    aiMetrics?.cpc ??
+    dbMetrics?.totals?.cpc ??
+    0;
 
-    setError(null);
-    setCreating(true);
+  const roasDisplay =
+    aiMetrics?.roas ??
+    dbMetrics?.totals?.roas ??
+    0;
 
-    const raw = newBudget.replace(",", ".").trim();
-    const parsed = parseFloat(raw);
-    const budgetNumber = Number.isNaN(parsed) ? 0 : parsed;
-
-    try {
-      const { data, error } = await supabase
-        .from("campaigns")
-        .insert([
-          {
-            user_id: user.id,
-            name: newName,
-            daily_budget: budgetNumber,
-            objective: newObjective || null,
-          },
-        ])
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Errore insert campaigns:", error);
-        setError(
-          error.message ||
-            `Errore nella creazione della campagna: ${JSON.stringify(error)}`
-        );
-      } else if (data) {
-        setCampaigns((prev) => [data as Campaign, ...prev]);
-        setNewName("");
-        setNewBudget("");
-        setNewObjective("");
-        setShowNewForm(false);
-      }
-    } catch (err) {
-      console.error("Errore imprevisto insert campaigns:", err);
-      setError("Errore imprevisto nella creazione della campagna.");
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  const handleGenerateAiCopy = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAiError(null);
-    setAiResult("");
-    setAiLoading(true);
-
-    try {
-      const res = await fetch("/api/ai/generate-copy", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productDescription: aiProductDescription,
-          goal: aiGoal,
-          language: aiLanguage,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setAiError(data.error || "Errore nella generazione AI.");
-      } else {
-        const data = await res.json();
-        setAiResult(data.result || "");
-      }
-    } catch (err) {
-      console.error("Errore chiamata /api/ai/generate-copy:", err);
-      setAiError("Errore di rete durante la richiesta AI.");
-    } finally {
-      setAiLoading(false);
-    }
-  };
+  const aiOn = aiMetrics?.ai_on ?? true;
+  const intentLabel = aiMetrics?.intent ?? "alto";
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50">
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-cyan-500/15 blur-3xl" />
-        <div className="absolute top-40 -left-10 h-72 w-72 rounded-full bg-blue-600/20 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl" />
-      </div>
-
-      <div className="mx-auto max-w-6xl px-4 py-5 md:px-8">
-        {/* HEADER */}
-        <header className="mb-6 flex items-center justify-between rounded-2xl border border-slate-800/80 bg-slate-950/80 px-4 py-3 shadow-md shadow-black/40 backdrop-blur-xl">
+    <main className="min-h-screen bg-slate-950 text-slate-50">
+      <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
+        {/* TOP BAR */}
+        <header className="mb-6 flex flex-col gap-3 md:mb-8 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 via-cyan-400 to-emerald-400 text-xl font-bold shadow-lg shadow-cyan-500/40">
-              AI
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-400/50 bg-emerald-500/10 shadow-[0_0_25px_rgba(16,185,129,0.7)]">
+              <span className="text-xs font-semibold tracking-[0.18em] text-emerald-300">
+                AI
+              </span>
             </div>
-            <div className="leading-tight">
-              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-cyan-300">
-                Advertiser Dashboard
-              </p>
-              <h1 className="text-sm font-semibold text-slate-50">
+            <div className="flex flex-col leading-tight">
+              <span className="text-xs uppercase tracking-[0.26em] text-emerald-400/80">
                 AI Ads Revolution
-              </h1>
-              {user && (
-                <p className="text-[0.65rem] text-slate-400">
-                  Loggato come{" "}
-                  <span className="text-slate-200">{user.email}</span>
-                </p>
-              )}
+              </span>
+              <span className="text-[11px] text-slate-400">
+                Dashboard inserzionista · Motore neurale di advertising
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-xs">
+          <div className="flex flex-wrap gap-2 text-xs">
             <Link
               href="/"
-              className="hidden rounded-full border border-slate-700/80 px-3 py-1 text-slate-300 transition hover:border-cyan-400/70 hover:text-cyan-200 md:inline-flex"
+              className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 hover:border-emerald-400 hover:text-emerald-200 transition-colors"
             >
               ← Torna alla home
             </Link>
-            <button
-              onClick={handleLogout}
-              disabled={loggingOut}
-              className="rounded-full bg-slate-100 px-3 py-1.5 text-[0.75rem] font-semibold text-slate-950 shadow shadow-slate-900/40 transition hover:bg-cyan-50 disabled:opacity-60"
+            <Link
+              href="/auth/logout"
+              className="rounded-full border border-red-500/60 bg-red-500/10 px-3 py-1.5 text-red-200 hover:bg-red-500/20 transition-colors"
             >
-              {loggingOut ? "Disconnessione..." : "Esci"}
-            </button>
+              Esci
+            </Link>
           </div>
         </header>
 
-        {/* PANORAMICA KPI + CREAZIONE CAMPAGNA */}
-        <section>
-          <div className="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-slate-50">
-                Panoramica performance
-              </h2>
-              <p className="text-xs text-slate-400">
-                Quando inizierai a lanciare campagne, vedrai qui i principali
-                indicatori di performance.
-              </p>
-            </div>
-            <button
-              onClick={() => setShowNewForm((v) => !v)}
-              className="self-start rounded-full bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500 px-4 py-1.5 text-xs font-semibold text-slate-950 shadow shadow-cyan-500/60 transition hover:brightness-110"
-            >
-              {showNewForm ? "Annulla" : "+ Crea nuova campagna"}
-            </button>
-          </div>
-
-          {showNewForm && (
-            <form
-              onSubmit={handleCreateCampaign}
-              className="mb-4 grid gap-3 rounded-2xl border border-slate-800/80 bg-slate-950/85 p-4 text-xs md:grid-cols-4"
-            >
-              <div className="flex flex-col gap-1">
-                <label className="text-[0.7rem] text-slate-300">
-                  Nome campagna
-                </label>
-                <input
-                  required
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/40"
-                  placeholder="Es. Lancio e-commerce"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[0.7rem] text-slate-300">
-                  Budget giornaliero (€)
-                </label>
-                <input
-                  required
-                  value={newBudget}
-                  onChange={(e) => setNewBudget(e.target.value)}
-                  className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/40"
-                  placeholder="Es. 20"
-                />
-              </div>
-              <div className="flex flex-col gap-1 md:col-span-2">
-                <label className="text-[0.7rem] text-slate-300">
-                  Obiettivo
-                </label>
-                <input
-                  value={newObjective}
-                  onChange={(e) => setNewObjective(e.target.value)}
-                  className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/40"
-                  placeholder="Es. Vendite, traffico, brand awareness"
-                />
-              </div>
-
-              <div className="md:col-span-4 flex items-center justify-between pt-1">
-                {error && (
-                  <p className="text-[0.7rem] text-red-400">{error}</p>
-                )}
-                <button
-                  type="submit"
-                  disabled={creating}
-                  className="ml-auto rounded-full bg-slate-100 px-4 py-1.5 text-[0.75rem] font-semibold text-slate-950 shadow shadow-slate-900/40 transition hover:bg-cyan-50 disabled:opacity-60"
-                >
-                  {creating ? "Salvataggio..." : "Salva campagna"}
-                </button>
-              </div>
-            </form>
-          )}
-
-          <div className="grid gap-4 md:grid-cols-3">
-            {STAT_CARDS.map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-2xl border border-slate-800/80 bg-slate-950/85 p-4 shadow-inner shadow-black/60"
-              >
-                <p className="text-xs text-slate-400">{stat.label}</p>
-                <p className="mt-2 text-lg font-semibold text-sky-300">—</p>
-                <p className="mt-1 text-[0.7rem] text-slate-400">
-                  {stat.helper}
+        {/* STATO AI + KPI */}
+        <section className="grid gap-4 md:grid-cols-[1.2fr,1fr]">
+          {/* Stato AI */}
+          <div className="rounded-2xl border border-emerald-500/40 bg-slate-950/80 p-4 shadow-[0_0_40px_rgba(16,185,129,0.35)]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-emerald-300">
+                  AI Neural Campaign Engine
+                </p>
+                <p className="mt-1 text-xs text-emerald-100/90">
+                  Live · Realtime signals · Finestra ultimi{" "}
+                  {aiMetrics?.window_days ?? 28} giorni
                 </p>
               </div>
-            ))}
-          </div>
-        </section>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-slate-400">AI</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-100">
+                  <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
+                  {aiOn ? "ON" : "OFF"}
+                </span>
+              </div>
+            </div>
 
-        {/* ASSISTENTE AI ANNUNCI */}
-        <section className="mt-8">
-          <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-slate-50">
-                Assistente AI per annunci sponsorizzati
-              </h2>
-              <p className="text-xs text-slate-400">
-                Descrivi il tuo prodotto: l&apos;AI genererà titoli, descrizioni
-                e call to action pronti da usare nelle tue campagne.
+            <div className="mt-4 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-slate-950 to-slate-950/80 p-3">
+              <p className="text-xs text-slate-300">
+                Intento di acquisto{" "}
+                <span className="font-semibold text-emerald-300">
+                  {intentLabel}
+                </span>
               </p>
+              <p className="mt-1 text-[11px] text-emerald-200/90">
+                L&apos;AI distribuisce il budget sulle sorgenti con maggiore
+                probabilità di conversione, aggiornando offerte e creatività in
+                tempo reale.
+              </p>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <div className="rounded-xl border border-slate-800 bg-slate-950/90 p-3">
+                <p className="text-[11px] text-slate-400">CTR medio</p>
+                <p className="mt-1 text-lg font-semibold text-emerald-300">
+                  {ctrDisplay.toFixed(1)}%
+                </p>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Click / impression negli ultimi{" "}
+                  {aiMetrics?.window_days ?? 28} giorni.
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-800 bg-slate-950/90 p-3">
+                <p className="text-[11px] text-slate-400">CPC medio</p>
+                <p className="mt-1 text-lg font-semibold text-emerald-300">
+                  € {cpcDisplay.toFixed(2)}
+                </p>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Costo medio per clic delle campagne attive.
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-800 bg-slate-950/90 p-3">
+                <p className="text-[11px] text-slate-400">ROAS medio</p>
+                <p className="mt-1 text-lg font-semibold text-emerald-300">
+                  {roasDisplay.toFixed(1)}x
+                </p>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Ritorno sulla spesa pubblicitaria (revenue / cost).
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <form
-              onSubmit={handleGenerateAiCopy}
-              className="flex flex-col gap-3 rounded-2xl border border-slate-800/80 bg-slate-950/85 p-4 text-xs shadow-inner shadow-black/60"
-            >
-              <div className="flex flex-col gap-1">
-                <label className="text-[0.7rem] text-slate-300">
-                  Descrivi il tuo prodotto / servizio
-                </label>
-                <textarea
-                  required
-                  value={aiProductDescription}
-                  onChange={(e) => setAiProductDescription(e.target.value)}
-                  rows={6}
-                  className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/40"
-                  placeholder="Es. Sneakers da running leggere per donna, ideali per allenamenti quotidiani..."
-                />
+          {/* Riepilogo DB */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
+              Riepilogo account
+            </p>
+
+            {loading ? (
+              <div className="mt-4 space-y-3">
+                <div className="h-4 w-1/2 rounded bg-slate-800 animate-pulse" />
+                <div className="h-4 w-2/3 rounded bg-slate-800 animate-pulse" />
+                <div className="h-4 w-1/3 rounded bg-slate-800 animate-pulse" />
               </div>
-
-              <div className="flex flex-col gap-2 md:flex-row">
-                <div className="flex flex-1 flex-col gap-1">
-                  <label className="text-[0.7rem] text-slate-300">
-                    Obiettivo campagna
-                  </label>
-                  <select
-                    value={aiGoal}
-                    onChange={(e) => setAiGoal(e.target.value)}
-                    className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/40"
-                  >
-                    <option>Aumentare le vendite</option>
-                    <option>Generare lead</option>
-                    <option>Aumentare il traffico al sito</option>
-                    <option>Brand awareness</option>
-                  </select>
-                </div>
-                <div className="flex flex-1 flex-col gap-1">
-                  <label className="text-[0.7rem] text-slate-300">
-                    Lingua degli annunci
-                  </label>
-                  <select
-                    value={aiLanguage}
-                    onChange={(e) => setAiLanguage(e.target.value)}
-                    className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/40"
-                  >
-                    <option>Italiano</option>
-                    <option>Inglese</option>
-                    <option>Spagnolo</option>
-                    <option>Francese</option>
-                    <option>Tedesco</option>
-                  </select>
-                </div>
+            ) : error ? (
+              <p className="mt-3 text-xs text-red-400">{error}</p>
+            ) : (
+              <div className="mt-4 space-y-3 text-sm text-slate-200">
+                <p>
+                  Impression totali:{" "}
+                  <span className="font-semibold text-emerald-300">
+                    {dbMetrics?.totals.impressions ?? 0}
+                  </span>
+                </p>
+                <p>
+                  Click totali:{" "}
+                  <span className="font-semibold text-emerald-300">
+                    {dbMetrics?.totals.clicks ?? 0}
+                  </span>
+                </p>
+                <p>
+                  Spesa totale:{" "}
+                  <span className="font-semibold text-emerald-300">
+                    € {(dbMetrics?.totals.cost ?? 0).toFixed(2)}
+                  </span>
+                </p>
+                <p>
+                  Entrate totali:{" "}
+                  <span className="font-semibold text-emerald-300">
+                    € {(dbMetrics?.totals.revenue ?? 0).toFixed(2)}
+                  </span>
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  I dati provengono dalla tabella{" "}
+                  <span className="font-mono text-emerald-300">
+                    campaign_metrics
+                  </span>{" "}
+                  su Supabase.
+                </p>
               </div>
-
-              {aiError && (
-                <p className="text-[0.7rem] text-red-400">{aiError}</p>
-              )}
-
-              <button
-                type="submit"
-                disabled={aiLoading}
-                className="mt-1 inline-flex items-center justify-center rounded-full bg-slate-100 px-4 py-1.5 text-[0.75rem] font-semibold text-slate-950 shadow shadow-slate-900/40 transition hover:bg-cyan-50 disabled:opacity-60"
-              >
-                {aiLoading
-                  ? "Generazione in corso..."
-                  : "Genera annunci con AI"}
-              </button>
-            </form>
-
-            <div className="flex flex-col gap-2 rounded-2xl border border-slate-800/80 bg-slate-950/85 p-4 text-xs shadow-inner shadow-black/60">
-              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.15em] text-cyan-300">
-                Output AI
-              </p>
-              {!aiResult && !aiLoading && (
-                <p className="text-[0.75rem] text-slate-400">
-                  Qui vedrai titoli, descrizioni e call to action suggerite
-                  dall&apos;intelligenza artificiale in base al prodotto che
-                  descrivi.
-                </p>
-              )}
-              {aiLoading && (
-                <p className="text-[0.75rem] text-slate-400">
-                  L&apos;AI sta generando suggerimenti per i tuoi annunci...
-                </p>
-              )}
-              {aiResult && !aiLoading && (
-                <pre className="mt-1 max-h-80 overflow-auto whitespace-pre-wrap rounded-lg bg-slate-950/90 px-3 py-2 text-[0.75rem] text-slate-100">
-                  {aiResult}
-                </pre>
-              )}
-            </div>
+            )}
           </div>
         </section>
 
         {/* TABELLA CAMPAGNE */}
-        <section className="mt-8">
-          <div className="mb-3 flex items-center justify-between gap-3">
+        <section className="mt-10 rounded-2xl border border-slate-800 bg-slate-950/80 p-4 md:p-5">
+          <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-semibold text-slate-50">
-                Campagne sponsorizzate
+              <h2 className="text-sm font-semibold text-slate-100">
+                Ultime metriche campagna
               </h2>
-              <p className="text-xs text-slate-400">
-                Elenco delle tue campagne attive, in pausa e in bozza.
+              <p className="mt-1 text-[11px] text-slate-500">
+                Ultime righe registrate in{" "}
+                <span className="font-mono text-emerald-300">
+                  campaign_metrics
+                </span>
+                . Quando lancerai campagne reali, vedrai qui le performance
+                aggiornate.
               </p>
             </div>
+            <Link
+              href="/auth/register"
+              className="hidden rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-200 hover:border-emerald-400 hover:text-emerald-200 md:inline-flex"
+            >
+              Crea nuova campagna
+            </Link>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/85 shadow-inner shadow-black/60">
-            {loadingCampaigns ? (
-              <div className="px-4 py-6 text-xs text-slate-400">
-                Caricamento campagne...
-              </div>
-            ) : campaigns.length === 0 ? (
-              <div className="px-4 py-6 text-xs text-slate-400">
-                Non hai ancora nessuna campagna. Crea la tua prima campagna per
-                iniziare a vedere risultati.
-              </div>
-            ) : (
-              <div className="w-full overflow-x-auto">
-                <table className="min-w-full border-collapse text-xs">
-                  <thead className="bg-slate-900/80 text-slate-300">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-medium">
-                        Nome campagna
-                      </th>
-                      <th className="px-4 py-3 text-left font-medium">
-                        Stato
-                      </th>
-                      <th className="px-4 py-3 text-left font-medium">
-                        Budget/giorno
-                      </th>
-                      <th className="px-4 py-3 text-left font-medium">
-                        Obiettivo
-                      </th>
-                      <th className="px-4 py-3 text-left font-medium">
-                        Creata il
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {campaigns.map((camp) => (
+          <div className="mt-4 overflow-x-auto">
+            <table className="min-w-full border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-slate-800 text-[11px] text-slate-400">
+                  <th className="px-2 py-2 font-normal">Campaign ID</th>
+                  <th className="px-2 py-2 font-normal text-right">
+                    Impression
+                  </th>
+                  <th className="px-2 py-2 font-normal text-right">Click</th>
+                  <th className="px-2 py-2 font-normal text-right">CTR</th>
+                  <th className="px-2 py-2 font-normal text-right">Costo</th>
+                  <th className="px-2 py-2 font-normal text-right">
+                    Entrate
+                  </th>
+                  <th className="px-2 py-2 font-normal text-right">ROAS</th>
+                  <th className="px-2 py-2 font-normal text-right">
+                    Data
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {dbMetrics?.rows && dbMetrics.rows.length > 0 ? (
+                  dbMetrics.rows.map((row) => {
+                    const ctrRow =
+                      row.impressions > 0
+                        ? (row.clicks / row.impressions) * 100
+                        : 0;
+                    const roasRow =
+                      row.cost > 0 ? row.revenue / row.cost : 0;
+                    return (
                       <tr
-                        key={camp.id}
-                        className="border-t border-slate-800/80 bg-slate-950/70 hover:bg-slate-900/70"
+                        key={row.campaign_id + row.created_at}
+                        className="border-b border-slate-900/80 last:border-0"
                       >
-                        <td className="px-4 py-3 text-slate-100">
-                          {camp.name}
+                        <td className="px-2 py-2 font-mono text-[11px] text-slate-300">
+                          {row.campaign_id}
                         </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-0.5 text-[0.7rem] font-medium ${
-                              camp.status === "Attiva"
-                                ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/40"
-                                : camp.status === "In pausa"
-                                ? "bg-amber-500/10 text-amber-300 border border-amber-500/40"
-                                : "bg-slate-500/10 text-slate-300 border border-slate-500/40"
-                            }`}
-                          >
-                            {camp.status}
-                          </span>
+                        <td className="px-2 py-2 text-right text-slate-200">
+                          {row.impressions}
                         </td>
-                        <td className="px-4 py-3 text-slate-200">
-                          € {camp.daily_budget.toFixed(2)}
+                        <td className="px-2 py-2 text-right text-slate-200">
+                          {row.clicks}
                         </td>
-                        <td className="px-4 py-3 text-slate-200">
-                          {camp.objective || "—"}
+                        <td className="px-2 py-2 text-right text-slate-200">
+                          {ctrRow.toFixed(1)}%
                         </td>
-                        <td className="px-4 py-3 text-slate-400">
-                          {new Date(camp.created_at).toLocaleString()}
+                        <td className="px-2 py-2 text-right text-slate-200">
+                          € {row.cost.toFixed(2)}
+                        </td>
+                        <td className="px-2 py-2 text-right text-slate-200">
+                          € {row.revenue.toFixed(2)}
+                        </td>
+                        <td className="px-2 py-2 text-right text-slate-200">
+                          {roasRow.toFixed(1)}x
+                        </td>
+                        <td className="px-2 py-2 text-right text-slate-400">
+                          {new Date(row.created_at).toLocaleString("it-IT")}
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            <div className="border-t border-slate-800/80 px-4 py-3 text-[0.7rem] text-slate-400">
-              Questi dati provengono dalla tabella <code>campaigns</code> del tuo
-              progetto Supabase. Più avanti collegheremo impression, click e
-              spesa reale.
-            </div>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="px-2 py-6 text-center text-[11px] text-slate-500"
+                    >
+                      Nessuna metrica ancora registrata. Appena AI-Core
+                      aggiorna la tabella{" "}
+                      <span className="font-mono text-emerald-300">
+                        campaign_metrics
+                      </span>
+                      , vedrai qui le prime righe reali.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </section>
       </div>
-    </div>
+    </main>
   );
 }
