@@ -48,12 +48,10 @@ async def metrics_update(payload: MetricsUpdate):
     if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
         raise HTTPException(
             status_code=500,
-            detail="Supabase non è configurato (manca SUPABASE_URL o 
-SUPABASE_SERVICE_ROLE_KEY).",
+            detail="Supabase non è configurato (manca SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY).",
         )
 
-    ctr = (payload.clicks / payload.impressions * 100.0) if 
-payload.impressions > 0 else 0.0
+    ctr = (payload.clicks / payload.impressions * 100.0) if payload.impressions > 0 else 0.0
     cpc = (payload.cost / payload.clicks) if payload.clicks > 0 else 0.0
     roas = (payload.revenue / payload.cost) if payload.cost > 0 else 0.0
 
@@ -91,13 +89,21 @@ payload.impressions > 0 else 0.0
                 else:
                     saved_row = data
             else:
-                # In produzione potremmo loggare meglio l'errore
                 print(
-                    f"[AI-CORE] Errore Supabase: 
-status={resp.status_code}, body={resp.text}"
+                    f"[AI-CORE] Errore Supabase: status={resp.status_code}, body={resp.text}"
                 )
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Errore inserimento Supabase (status {resp.status_code})",
+                )
+        except HTTPException:
+            raise
         except Exception as e:
             print(f"[AI-CORE] Eccezione chiamata Supabase: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Errore interno durante la chiamata a Supabase.",
+            )
 
     return {
         "ai_on": True,
@@ -119,4 +125,3 @@ if __name__ == "__main__":
         port=int(os.getenv("PORT", "8001")),
         reload=True,
     )
-
