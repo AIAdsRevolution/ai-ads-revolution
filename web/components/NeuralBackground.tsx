@@ -1,170 +1,166 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
 export default function NeuralBackground() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let frameId: number;
-    const dpr = window.devicePixelRatio || 1;
-
-    const resize = () => {
-      const { innerWidth, innerHeight } = window;
-      canvas.width = innerWidth * dpr;
-      canvas.height = innerHeight * dpr;
-      canvas.style.width = innerWidth + "px";
-      canvas.style.height = innerHeight + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-
-    resize();
-    window.addEventListener("resize", resize);
-
-    type Node = {
-      baseY: number;
-      offset: number;
-      speed: number;
-      phase: number;
-    };
-
-    const leftNodes: Node[] = [];
-    const rightNodes: Node[] = [];
-    const nodeCount = 70;
-
-    for (let i = 0; i < nodeCount; i++) {
-      const baseY = i / (nodeCount - 1);
-      leftNodes.push({
-        baseY,
-        offset: Math.random() * 0.12 + 0.04,
-        speed: 0.3 + Math.random() * 0.4,
-        phase: Math.random() * Math.PI * 2,
-      });
-      rightNodes.push({
-        baseY,
-        offset: Math.random() * 0.12 + 0.04,
-        speed: 0.3 + Math.random() * 0.4,
-        phase: Math.random() * Math.PI * 2,
-      });
-    }
-
-    const render = (time: number) => {
-      const t = time / 1000;
-      const { innerWidth: w, innerHeight: h } = window;
-
-      ctx.clearRect(0, 0, w, h);
-
-      // Fondo principale: nero / blu profondo
-      const gradient = ctx.createRadialGradient(
-        w * 0.2,
-        h * 0.1,
-        0,
-        w * 0.5,
-        h * 0.8,
-        Math.max(w, h)
-      );
-      gradient.addColorStop(0, "rgba(56,189,248,0.15)");
-      gradient.addColorStop(0.4, "rgba(16,185,129,0.14)");
-      gradient.addColorStop(1, "rgba(0,0,0,1)");
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, w, h);
-
-      // Linee diagonali molto leggere, stile exchange
-      ctx.save();
-      ctx.globalAlpha = 0.35;
-      ctx.strokeStyle = "rgba(30,64,175,0.5)";
-      ctx.lineWidth = 0.5;
-      const step = 120;
-      for (let x = -w; x < w * 2; x += step) {
-        ctx.beginPath();
-        ctx.moveTo(x + ((t * 20) % step), 0);
-        ctx.lineTo(x - h + ((t * 20) % step), h);
-        ctx.stroke();
-      }
-      ctx.restore();
-
-      // Doppia elica tipo DNA in metallo luminoso
-      ctx.save();
-      ctx.globalAlpha = 0.9;
-
-      const centerX = w * 0.58;
-      const amplitude = Math.min(w, 900) * 0.12;
-
-      for (let i = 0; i < nodeCount; i++) {
-        const ln = leftNodes[i];
-        const rn = rightNodes[i];
-
-        const baseY = ln.baseY * h;
-        const wave = Math.sin(t * ln.speed + ln.phase);
-
-        const xLeft = centerX - amplitude - wave * 12;
-        const xRight = centerX + amplitude + wave * 12;
-
-        const yOffset = Math.sin(t * 1.2 + ln.phase) * ln.offset * h;
-        const y = baseY + yOffset;
-
-        const hue = 180 + Math.sin(t * 1.5 + i * 0.08) * 25;
-        const lineColor = `hsla(${hue}, 75%, 60%, 0.55)`;
-        const nodeColor = `hsla(${hue}, 100%, 75%, 0.95)`;
-
-        // barre che uniscono i due filamenti
-        ctx.strokeStyle = lineColor;
-        ctx.lineWidth = 1.1;
-        ctx.beginPath();
-        ctx.moveTo(xLeft, y);
-        ctx.lineTo(xRight, y);
-        ctx.stroke();
-
-        // nodi metallici
-        const nodeRadius = 2.2 + (Math.sin(t * 2 + i * 0.12) + 1) * 0.8;
-        ctx.fillStyle = nodeColor;
-        ctx.beginPath();
-        ctx.arc(xLeft, y, nodeRadius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(xRight, y, nodeRadius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.restore();
-
-      // Piccole particelle brillanti
-      ctx.save();
-      ctx.globalAlpha = 0.12;
-      for (let i = 0; i < 130; i++) {
-        const x = Math.random() * w;
-        const y = Math.random() * h;
-        const r = Math.random() * 1.5;
-        ctx.fillStyle =
-          Math.random() > 0.5
-            ? "rgba(148,163,184,0.45)"
-            : "rgba(45,212,191,0.45)";
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
-
-      frameId = window.requestAnimationFrame(render);
-    };
-
-    frameId = window.requestAnimationFrame(render);
-
-    return () => {
-      window.removeEventListener("resize", resize);
-      if (frameId) window.cancelAnimationFrame(frameId);
-    };
-  }, []);
-
   return (
-    <div className="pointer-events-none absolute inset-0 -z-20">
-      <canvas ref={canvasRef} className="h-full w-full" aria-hidden="true" />
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-transparent to-black" />
-    </div>
+    <>
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-black">
+        {/* Glow principale verde */}
+        <div
+          className="absolute -left-40 top-[-10%] h-[380px] w-[380px] rounded-full opacity-60"
+          style={{
+            background:
+              "radial-gradient(circle at 30% 20%, rgba(16,185,129,0.9), transparent 60%)",
+            filter: "blur(40px)",
+            animation: "neuralOrbit 40s linear infinite",
+          }}
+        />
+        {/* Glow secondario azzurro */}
+        <div
+          className="absolute right-[-120px] top-[10%] h-[420px] w-[420px] rounded-full opacity-50"
+          style={{
+            background:
+              "radial-gradient(circle at 70% 20%, rgba(56,189,248,0.8), transparent 60%)",
+            filter: "blur(45px)",
+            animation: "neuralOrbitReverse 50s linear infinite",
+          }}
+        />
+        {/* Glow profondo sul fondo */}
+        <div
+          className="absolute left-1/2 top-[55%] h-[520px] w-[520px] -translate-x-1/2 rounded-full opacity-50"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 50%, rgba(15,23,42,0.9), transparent 70%)",
+            filter: "blur(60px)",
+          }}
+        />
+
+        {/* Griglia neurale animata */}
+        <div
+          className="absolute inset-[-50px] opacity-[0.12]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, rgba(148,163,184,0.55) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.4) 1px, transparent 1px)",
+            backgroundSize: "80px 80px",
+            maskImage:
+              "radial-gradient(circle at top, black, transparent 60%)",
+            WebkitMaskImage:
+              "radial-gradient(circle at top, black, transparent 60%)",
+            animation: "gridFlow 26s linear infinite",
+          }}
+        />
+
+        {/* Linee neurali dinamiche */}
+        <div className="absolute inset-0 opacity-60">
+          <svg
+            className="h-full w-full"
+            viewBox="0 0 1440 900"
+            preserveAspectRatio="xMidYMid slice"
+          >
+            <defs>
+              <linearGradient
+                id="neuralLine"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="0%"
+              >
+                <stop offset="0%" stopColor="#22c55e" stopOpacity="0" />
+                <stop offset="40%" stopColor="#22c55e" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+
+            <path
+              d="M -100 200 Q 200 160 450 220 T 950 200 T 1600 230"
+              fill="none"
+              stroke="url(#neuralLine)"
+              strokeWidth="1.6"
+              className="neural-line"
+            />
+            <path
+              d="M -120 420 Q 260 440 520 360 T 980 380 T 1620 360"
+              fill="none"
+              stroke="url(#neuralLine)"
+              strokeWidth="1.3"
+              className="neural-line delay-1"
+            />
+            <path
+              d="M -80 640 Q 260 590 520 670 T 980 640 T 1580 660"
+              fill="none"
+              stroke="url(#neuralLine)"
+              strokeWidth="1.2"
+              className="neural-line delay-2"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <style jsx global>{`
+        @keyframes neuralOrbit {
+          0% {
+            transform: translate3d(0, 0, 0) rotate(0deg);
+          }
+          50% {
+            transform: translate3d(40px, -40px, 0) rotate(80deg);
+          }
+          100% {
+            transform: translate3d(-20px, 20px, 0) rotate(160deg);
+          }
+        }
+
+        @keyframes neuralOrbitReverse {
+          0% {
+            transform: translate3d(0, 0, 0) rotate(0deg);
+          }
+          50% {
+            transform: translate3d(-40px, 30px, 0) rotate(-90deg);
+          }
+          100% {
+            transform: translate3d(20px, -20px, 0) rotate(-170deg);
+          }
+        }
+
+        @keyframes gridFlow {
+          0% {
+            transform: translate3d(0, 0, 0);
+          }
+          50% {
+            transform: translate3d(-40px, -40px, 0);
+          }
+          100% {
+            transform: translate3d(-80px, -10px, 0);
+          }
+        }
+
+        @keyframes neuralStroke {
+          0% {
+            stroke-dashoffset: 320;
+            opacity: 0.1;
+          }
+          40% {
+            stroke-dashoffset: 140;
+            opacity: 0.7;
+          }
+          100% {
+            stroke-dashoffset: 0;
+            opacity: 0.15;
+          }
+        }
+
+        .neural-line {
+          stroke-dasharray: 320;
+          stroke-dashoffset: 320;
+          animation: neuralStroke 9s ease-in-out infinite;
+        }
+
+        .neural-line.delay-1 {
+          animation-delay: 1.4s;
+        }
+
+        .neural-line.delay-2 {
+          animation-delay: 2.8s;
+        }
+      `}</style>
+    </>
   );
 }
