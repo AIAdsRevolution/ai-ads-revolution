@@ -1,13 +1,37 @@
 "use client";
 
-import { AIMetrics } from "@/components/AIMetrics";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import NeuralBackground from "../components/NeuralBackground";
+import NeuralBackground from "@/components/NeuralBackground";
+import { AIMetrics } from "@/components/AIMetrics";
+
+async function handleBasicCheckout() {
+  try {
+    const res = await fetch("/api/billing/create-checkout-session", {
+      method: "POST",
+    });
+
+    if (!res.ok) {
+      console.error("Errore Stripe:", await res.text());
+      alert("Errore nell'attivazione del piano. Riprova tra poco.");
+      return;
+    }
+
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      console.error("Risposta Stripe senza URL:", data);
+      alert("Non è stato possibile aprire la pagina di pagamento.");
+    }
+  } catch (err) {
+    console.error("Errore di rete Stripe:", err);
+    alert("Problema di connessione con Stripe. Riprova tra poco.");
+  }
+}
 
 const stats = [
   { label: "CTR medio", value: "+32%", helper: "su campagne ottimizzate con AI" },
-  { label: "CPC medio", value: "€0,21", helper: "costo per clic indicativo" },
+  { label: "CPC medio", value: "€ 0,21", helper: "costo per clic indicativo" },
   { label: "ROAS medio", value: "4,7x", helper: "ritorno su spesa pubblicitaria" },
 ];
 
@@ -41,68 +65,17 @@ const socials = [
   { label: "TT", tag: "TikTok" },
 ];
 
-async function handleBasicCheckout() {
-  try {
-    const res = await fetch("/api/billing/create-checkout-session", {
-      method: "POST",
-    });
-
-    if (!res.ok) {
-      console.error("Errore Stripe:", await res.text());
-      alert("Errore nell'attivazione del piano. Riprova tra poco.");
-      return;
-    }
-
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      console.error("Risposta Stripe senza URL:", data);
-      alert("Non è stato possibile aprire la pagina di pagamento.");
-    }
-  } catch (err) {
-    console.error("Errore di rete Stripe:", err);
-    alert("Problema di connessione con Stripe. Riprova tra poco.");
-  }
-}
-
 export default function HomePage() {
-  const [basicPriceDisplay, setBasicPriceDisplay] = useState("{basicPriceDisplay}");
-
-  useEffect(() => {
-    async function loadPrice() {
-      try {
-        const res = await fetch("/api/billing/basic-price");
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.amount && data.currency) {
-          const eur = data.amount / 100;
-          const formatted = new Intl.NumberFormat("it-IT", {
-            style: "currency",
-            currency: data.currency.toUpperCase(),
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-          }).format(eur);
-          setBasicPriceDisplay(formatted);
-        }
-      } catch (err) {
-        console.error("Errore caricamento prezzo base:", err);
-      }
-    }
-    loadPrice();
-  }, []);
-
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-black via-slate-900 to-black text-slate-100">
-      <AIMetrics />
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-black via-slate-950 to-black text-slate-100">
       <NeuralBackground />
 
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-4 pb-10 pt-6 md:px-6 md:pt-8">
         {/* TOP BAR */}
-        <header className="flex items-center justify-between gap-4">
+        <header className="flex items-center justify-between gap-4 border-b border-slate-800/80 pb-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-400/40 bg-emerald-500/10 shadow-[0_0_25px_rgba(16,185,129,0.5)]">
-               <span className="text-xs font-semibold tracking-[0.18em] text-emerald-300 animate-pulse">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-400/60 bg-emerald-500/10 shadow-[0_0_30px_rgba(16,185,129,0.7)]">
+              <span className="text-xs font-semibold tracking-[0.18em] text-emerald-300">
                 AI
               </span>
             </div>
@@ -110,7 +83,7 @@ export default function HomePage() {
               <span className="text-xs uppercase tracking-[0.26em] text-emerald-400/80">
                 AI Ads Revolution
               </span>
-              <span className="text-[11px] text-slate-200">
+              <span className="text-[11px] text-slate-400">
                 Motore neurale di advertising • <span className="text-emerald-300">Beta</span>
               </span>
             </div>
@@ -134,16 +107,21 @@ export default function HomePage() {
             </Link>
             <Link
               href="/auth/register"
-              className="rounded-xl border border-emerald-500/70 bg-emerald-500/10 px-4 py-1.5 text-sm font-medium text-emerald-100 shadow-[0_0_25px_rgba(16,185,129,0.4)] hover:bg-emerald-500/20 transition-colors"
+              className="btn-primary-3d rounded-xl border border-emerald-500/70 bg-emerald-500/10 px-4 py-1.5 text-sm font-medium text-emerald-100 shadow-[0_0_25px_rgba(16,185,129,0.4)] hover:bg-emerald-500/20 transition-colors"
             >
               Registrati
             </Link>
           </nav>
         </header>
 
+        {/* BLOCCO KPI AI IN ALTO */}
+        <section className="mt-4">
+          <AIMetrics />
+        </section>
+
         {/* HERO */}
-        <section className="mt-10 flex flex-col gap-10 lg:mt-16 lg:flex-row lg:items-start">
-          {/* Colonna sinistra */}
+        <section className="mt-8 flex flex-col gap-10 lg:mt-10 lg:flex-row lg:items-start">
+          {/* Colonna sinistra: testo principale */}
           <div className="flex-1 space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/5 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-emerald-300">
               <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
@@ -162,15 +140,15 @@ export default function HomePage() {
               </h1>
               <p className="mt-4 max-w-xl text-sm text-slate-200 md:text-base">
                 AI Ads Revolution analizza milioni di segnali in tempo reale per ottimizzare
-                visibilità, traffico e conversioni. Raggiungi gli acquirenti nel momento esatto
-                in cui stanno cercando prodotti come i tuoi.
+                visibilità, traffico e conversioni. Raggiungi gli acquirenti nel momento esatto in cui
+                stanno cercando prodotti come i tuoi.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 href="/auth/register"
-                className="inline-flex items-center justify-center rounded-full bg-emerald-500 text-sm font-semibold text-slate-950 shadow-[0_0_45px_rgba(16,185,129,0.55)] hover:bg-emerald-300 transition-colors"
+                className="btn-primary-3d inline-flex items-center justify-center rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-[0_0_45px_rgba(16,185,129,0.55)] hover:bg-emerald-300 transition-colors"
               >
                 Inizia ora
               </Link>
@@ -181,7 +159,7 @@ export default function HomePage() {
                 <span>Guarda come funziona</span>
                 <span className="text-xs">↗</span>
               </Link>
-              <span className="ml-1 text-xs text-slate-200 md:text-[13px]">
+              <span className="ml-1 text-xs text-slate-400 md:text-[13px]">
                 +30% vendite medie attribuite alle campagne AI*
               </span>
             </div>
@@ -193,7 +171,7 @@ export default function HomePage() {
 
             {/* Social login style */}
             <div className="mt-4 space-y-3">
-              <p className="text-xs text-slate-200">Oppure continua con</p>
+              <p className="text-xs text-slate-400">Oppure continua con</p>
               <div className="flex flex-wrap gap-2">
                 <button className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/70 px-3 py-1.5 text-xs text-slate-200 hover:border-emerald-400/80 hover:text-emerald-200 transition-colors">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 text-[11px]">
@@ -219,7 +197,7 @@ export default function HomePage() {
 
           {/* Colonna destra: pannello AI + stats */}
           <div className="w-full max-w-md space-y-4 lg:w-96">
-            <div className="rounded-2xl border border-emerald-400/40 bg-slate-950/60 backdrop-blur-xl p-4 shadow-[0_0_45px_rgba(16,185,129,0.7)]">
+            <div className="rounded-2xl border border-emerald-400/40 bg-slate-950/60 backdrop-blur-xl p-4 shadow-[0_0_45px_rgba(16,185,129,0.55)]">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-300/90">
@@ -230,8 +208,8 @@ export default function HomePage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-slate-200">AI</span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/25 px-2 py-0.5 text-[10px] font-medium text-emerald-100 shadow-[0_0_18px_rgba(16,185,129,0.7)]">
+                  <span className="text-[11px] text-slate-400">AI</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-100">
                     <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
                     ON
                   </span>
@@ -239,9 +217,7 @@ export default function HomePage() {
               </div>
 
               <div className="mt-4 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-400/20 via-slate-900 to-black p-3">
-                <p className="text-xs text-slate-200">
-                  Intento di acquisto alto
-                </p>
+                <p className="text-xs text-slate-200">Intento di acquisto alto</p>
                 <p className="mt-1 text-[11px] text-emerald-200/90">
                   Ottimizzazione automatica di bid e creatività in tempo reale.
                 </p>
@@ -251,9 +227,9 @@ export default function HomePage() {
                 {stats.map((s) => (
                   <div
                     key={s.label}
-                    className="rounded-xl border border-slate-700/80 bg-slate-950/60 backdrop-blur-xl p-2 text-center"
+                    className="rounded-xl border border-slate-700/80 bg-slate-950/80 p-2 text-center"
                   >
-                    <p className="text-[10px] text-slate-200">{s.label}</p>
+                    <p className="text-[10px] text-slate-400">{s.label}</p>
                     <p className="mt-1 text-sm font-semibold text-emerald-300">
                       {s.value}
                     </p>
@@ -265,7 +241,8 @@ export default function HomePage() {
               </div>
 
               <p className="mt-3 text-[11px] text-slate-500">
-                Performance demo ultimi 28 giorni · In arrivo: integrazione Stripe · App iOS / Android · Multilingua globale
+                Performance demo ultimi 28 giorni · In arrivo: integrazione Stripe · App iOS / Android ·
+                Multilingua globale
               </p>
             </div>
           </div>
@@ -286,7 +263,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-slate-800/90 bg-slate-950/60 backdrop-blur-xl p-4">
+            <div className="rounded-2xl border border-slate-800/90 bg-slate-950/80 p-4">
               <p className="text-xs font-semibold text-emerald-300">
                 AI-first in ogni decisione
               </p>
@@ -295,7 +272,7 @@ export default function HomePage() {
                 di segnali in tempo reale.
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800/90 bg-slate-950/60 backdrop-blur-xl p-4">
+            <div className="rounded-2xl border border-slate-800/90 bg-slate-950/80 p-4">
               <p className="text-xs font-semibold text-emerald-300">
                 Dalla scoperta alla conversione
               </p>
@@ -304,7 +281,7 @@ export default function HomePage() {
                 tutto il percorso del cliente.
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800/90 bg-slate-950/60 backdrop-blur-xl p-4">
+            <div className="rounded-2xl border border-slate-800/90 bg-slate-950/80 p-4">
               <p className="text-xs font-semibold text-emerald-300">
                 Pensato per tutte le aziende
               </p>
@@ -339,7 +316,7 @@ export default function HomePage() {
             <div className="mt-5 flex flex-wrap gap-3">
               <Link
                 href="/auth/register"
-                className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 transition-colors"
+                className="btn-primary-3d inline-flex items-center justify-center rounded-xl bg-emerald-500 px-5 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-300 transition-colors"
               >
                 Inizia subito
               </Link>
@@ -356,14 +333,14 @@ export default function HomePage() {
             {steps.map((s) => (
               <div
                 key={s.step}
-                className="flex gap-3 rounded-2xl border border-slate-800/80 bg-slate-950/60 backdrop-blur-xl p-3"
+                className="flex gap-3 rounded-2xl border border-slate-800/80 bg-slate-950/80 p-3"
               >
                 <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/15 text-[11px] font-semibold text-emerald-300">
                   {s.step}
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-100">{s.title}</p>
-                  <p className="mt-1 text-xs text-slate-200">{s.desc}</p>
+                  <p className="mt-1 text-xs text-slate-300">{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -375,12 +352,12 @@ export default function HomePage() {
           <div className="max-w-3xl">
             <h3 className="text-lg font-semibold">Piani e prezzi</h3>
             <p className="mt-2 text-sm text-slate-200">
-              Inizia con il piano Basic e scala quando sei pronto. Nessun costo di setup, nessun
-              vincolo annuale. Paghi solo per quello che usi.
+              Inizia con il piano Basic e scala quando sei pronto. Nessun costo di setup, nessun vincolo
+              annuale. Paghi solo per quello che usi.
             </p>
           </div>
 
-          <div className="mt-6 max-w-md rounded-2xl border border-emerald-500/40 bg-slate-950/60 backdrop-blur-xl p-5 shadow-[0_0_40px_rgba(16,185,129,0.35)]">
+          <div className="mt-6 max-w-md rounded-2xl border border-emerald-500/40 bg-slate-950/80 p-5 shadow-[0_0_40px_rgba(16,185,129,0.35)]">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
               Piano Basic
             </p>
@@ -389,8 +366,8 @@ export default function HomePage() {
             </p>
 
             <div className="mt-4 flex items-baseline gap-2">
-              <span className="text-2xl font-semibold text-emerald-300">{basicPriceDisplay}</span>
-              <span className="text-xs text-slate-200">/ mese, cancellabile in qualsiasi momento</span>
+              <span className="text-2xl font-semibold text-emerald-300">€ 19</span>
+              <span className="text-xs text-slate-400">/ mese, cancellabile in qualsiasi momento</span>
             </div>
 
             <ul className="mt-4 space-y-1.5 text-sm text-slate-200">
@@ -400,13 +377,22 @@ export default function HomePage() {
               <li>• Supporto email per la fase beta</li>
             </ul>
 
-            <button
-              type="button"
-              onClick={handleBasicCheckout}
-              className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-emerald-400 transition-colors"
+            <form
+              action="/api/billing/create-checkout-session"
+              method="POST"
+              className="mt-5"
             >
-              Attiva piano Basic
-            </button>
+              <button
+                type="submit"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleBasicCheckout();
+                }}
+                className="btn-primary-3d inline-flex w-full items-center justify-center rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-emerald-300 transition-colors"
+              >
+                Attiva piano Basic
+              </button>
+            </form>
 
             <p className="mt-2 text-[11px] text-slate-500">
               Pagamento elaborato in modo sicuro tramite Stripe. I dati della carta non vengono
@@ -422,7 +408,7 @@ export default function HomePage() {
               <p className="text-sm font-medium text-slate-100">
                 Community e aggiornamenti
               </p>
-              <p className="mt-1 text-xs text-slate-200">
+              <p className="mt-1 text-xs text-slate-400">
                 Segui AI Ads Revolution sui canali ufficiali per aggiornamenti, roadmap e casi studio.
               </p>
             </div>
@@ -431,12 +417,12 @@ export default function HomePage() {
               {socials.map((s) => (
                 <button
                   key={s.label}
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/60 backdrop-blur-xl px-3 py-1.5 text-[11px] text-slate-200 hover:border-emerald-400/80 hover:text-emerald-200 transition-colors"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1.5 text-[11px] text-slate-200 hover:border-emerald-400/80 hover:text-emerald-200 transition-colors"
                 >
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 text-[11px]">
                     {s.label}
                   </span>
-                  <span className="hidden text-[10px] text-slate-200 sm:inline">
+                  <span className="hidden text-[10px] text-slate-400 sm:inline">
                     {s.tag}
                   </span>
                 </button>
@@ -467,9 +453,6 @@ export default function HomePage() {
               </Link>
               <Link href="/status" className="hover:text-emerald-300 transition-colors">
                 Status piattaforma
-              </Link>
-              <Link href="/posizioni-aperte" className="hover:text-emerald-300 transition-colors">
-                Posizioni aperte
               </Link>
             </div>
           </div>
