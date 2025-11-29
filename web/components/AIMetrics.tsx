@@ -20,7 +20,7 @@ export function AIMetrics() {
 
   if (!data) {
     return (
-      <div className="text-slate-400 text-sm">
+      <div className="text-slate-200 text-sm">
         Caricamento motore AI…
       </div>
     );
@@ -34,26 +34,26 @@ export function AIMetrics() {
     <div className="flex flex-col gap-2 text-sm text-slate-100">
       <div className="flex gap-6 flex-wrap">
         <div>
-          <div className="text-xs uppercase text-slate-400 tracking-wide">
+          <div className="text-xs uppercase text-slate-200 tracking-wide">
             CTR medio
           </div>
           <div className="text-lg font-semibold">+{ctr}%</div>
         </div>
         <div>
-          <div className="text-xs uppercase text-slate-400 tracking-wide">
+          <div className="text-xs uppercase text-slate-200 tracking-wide">
             CPC medio
           </div>
           <div className="text-lg font-semibold">€{cpc}</div>
         </div>
         <div>
-          <div className="text-xs uppercase text-slate-400 tracking-wide">
+          <div className="text-xs uppercase text-slate-200 tracking-wide">
             ROAS medio
           </div>
           <div className="text-lg font-semibold">{roas}x</div>
         </div>
       </div>
 
-      <div className="text-xs text-slate-400">
+      <div className="text-xs text-slate-200">
         Intento di acquisto{" "}
         <span className="font-semibold text-emerald-300">
           {data.intent}

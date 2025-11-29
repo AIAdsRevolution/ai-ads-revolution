@@ -105,7 +105,7 @@ export default function DashboardPage() {
               <span className="text-xs uppercase tracking-[0.26em] text-emerald-400/80">
                 AI Ads Revolution
               </span>
-              <span className="text-[11px] text-slate-400">
+              <span className="text-[11px] text-slate-200">
                 Dashboard inserzionista · Motore neurale di advertising
               </span>
             </div>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] text-slate-400">AI</span>
+                <span className="text-[11px] text-slate-200">AI</span>
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-100">
                   <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
                   {aiOn ? "ON" : "OFF"}
@@ -151,7 +151,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="mt-4 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-slate-950 to-slate-950/80 p-3">
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-slate-200">
                 Intento di acquisto{" "}
                 <span className="font-semibold text-emerald-300">
                   {intentLabel}
@@ -166,7 +166,7 @@ export default function DashboardPage() {
 
             <div className="mt-4 grid gap-3 md:grid-cols-3">
               <div className="rounded-xl border border-slate-800 bg-slate-950/90 p-3">
-                <p className="text-[11px] text-slate-400">CTR medio</p>
+                <p className="text-[11px] text-slate-200">CTR medio</p>
                 <p className="mt-1 text-lg font-semibold text-emerald-300">
                   {ctrDisplay.toFixed(1)}%
                 </p>
@@ -176,7 +176,7 @@ export default function DashboardPage() {
                 </p>
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/90 p-3">
-                <p className="text-[11px] text-slate-400">CPC medio</p>
+                <p className="text-[11px] text-slate-200">CPC medio</p>
                 <p className="mt-1 text-lg font-semibold text-emerald-300">
                   € {cpcDisplay.toFixed(2)}
                 </p>
@@ -185,7 +185,7 @@ export default function DashboardPage() {
                 </p>
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/90 p-3">
-                <p className="text-[11px] text-slate-400">ROAS medio</p>
+                <p className="text-[11px] text-slate-200">ROAS medio</p>
                 <p className="mt-1 text-lg font-semibold text-emerald-300">
                   {roasDisplay.toFixed(1)}x
                 </p>
@@ -197,8 +197,8 @@ export default function DashboardPage() {
           </div>
 
           {/* Riepilogo DB */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
+          <div className="rounded-2xl border border-slate-700 bg-slate-950/70 backdrop-blur-xl p-4 shadow-[0_0_40px_rgba(15,23,42,0.9)]">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-200">
               Riepilogo account
             </p>
 
@@ -275,7 +275,7 @@ export default function DashboardPage() {
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-full border-collapse text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-800 text-[11px] text-slate-400">
+                <tr className="border-b border-slate-800 text-[11px] text-slate-200">
                   <th className="px-2 py-2 font-normal">Campaign ID</th>
                   <th className="px-2 py-2 font-normal text-right">
                     Impression
@@ -306,7 +306,7 @@ export default function DashboardPage() {
                         key={row.campaign_id + row.created_at}
                         className="border-b border-slate-900/80 last:border-0"
                       >
-                        <td className="px-2 py-2 font-mono text-[11px] text-slate-300">
+                        <td className="px-2 py-2 font-mono text-[11px] text-slate-200">
                           {row.campaign_id}
                         </td>
                         <td className="px-2 py-2 text-right text-slate-200">
@@ -327,7 +327,7 @@ export default function DashboardPage() {
                         <td className="px-2 py-2 text-right text-slate-200">
                           {roasRow.toFixed(1)}x
                         </td>
-                        <td className="px-2 py-2 text-right text-slate-400">
+                        <td className="px-2 py-2 text-right text-slate-200">
                           {new Date(row.created_at).toLocaleString("it-IT")}
                         </td>
                       </tr>
