@@ -1,176 +1,167 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, FormEvent } from "react";
 
-type ChatMessage = {
-  role: "user" | "bot";
-  text: string;
+type Message = {
+  role: "user" | "assistant";
+  content: string;
 };
 
-export default function AiChatbotPage() {
+export default function AIChatbotPage() {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: "assistant",
+      content:
+        "Ciao 👋 Sono il chatbot AI di AI Ads Revolution. Posso aiutarti con piani, prezzi, funzionamento della piattaforma e problemi di accesso.",
+    },
+  ]);
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  async function handleSend(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const text = input.trim();
-    if (!text || loading) return;
+    if (!text) return;
 
-    setMessages((prev) => [...prev, { role: "user", text }]);
+    const userMsg: Message = { role: "user", content: text };
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
-    setError(null);
 
     try {
       const res = await fetch("/api/chatbot", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: text,
+          page: "/ai-chatbot",
+        }),
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
-        throw new Error(data.error || "Errore nella risposta dell'AI.");
+        const err = await res.json().catch(() => ({}));
+        const errText =
+          err?.error || "Errore nella risposta del chatbot AI.";
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: `⚠️ ${errText}`,
+          },
+        ]);
+      } else {
+        const data = await res.json();
+        const reply = (data.reply as string) || "Risposta non disponibile.";
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: reply,
+          },
+        ]);
       }
-
-      const reply: string =
-        data.reply || "Nessuna risposta generata, riprova tra poco.";
-
-      setMessages((prev) => [...prev, { role: "bot", text: reply }]);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Errore inatteso dal chatbot.");
+    } catch (error) {
+      console.error("Errore chiamata /api/chatbot:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "⚠️ C'è stato un problema tecnico nel contattare il chatbot. Riprova tra qualche secondo.",
+        },
+      ]);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 flex flex-col">
-      {/* TOP BAR */}
-      <div className="border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
-        <div className="mx-auto max-w-5xl px-4 py-4 flex items-center justify-between">
+    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+      <div className="w-full border-b border-slate-800 bg-slate-950/70 backdrop-blur">
+        <div className="mx-auto max-w-5xl px-4 py-4 flex items-center justify-between gap-4">
           <div>
-            <div className="text-[10px] uppercase tracking-[0.22em] text-sky-400/80">
-              AI Ads Revolution
-            </div>
-            <h1 className="text-lg md:text-xl font-semibold">
-              Chatbot AI · Domande su piani, billing e campagne
+            <p className="text-xs uppercase tracking-[0.15em] text-sky-400">
+              AI Chatbot • Beta
+            </p>
+            <h1 className="text-xl md:text-2xl font-semibold">
+              Assistente AI Ads Revolution
             </h1>
+            <p className="text-sm text-slate-400">
+              Fai domande su piani, prezzi, campagne, login e billing. Nessuna
+              assistenza telefonica, solo AI 24/7.
+            </p>
           </div>
-          <a
-            href="/pricing"
-            className="inline-flex items-center rounded-full border border-sky-500/70 px-3 py-1 text-xs font-medium text-sky-100 hover:bg-sky-500/10 transition"
-          >
-            ← Torna a piani & prezzi
-          </a>
+          <div className="hidden md:flex flex-col items-end gap-2">
+            <a
+              href="/pricing"
+              className="text-xs px-3 py-1 rounded-full border border-sky-500/40 text-sky-300 hover:bg-sky-500/10 transition"
+            >
+              ← Torna ai piani
+            </a>
+            <a
+              href="/dashboard"
+              className="text-xs px-3 py-1 rounded-full border border-slate-700 text-slate-200 hover:bg-slate-800 transition"
+            >
+              Vai alla dashboard
+            </a>
+          </div>
         </div>
       </div>
 
-      {/* LAYOUT PRINCIPALE */}
-      <div className="flex-1 mx-auto w-full max-w-5xl px-4 py-6 md:py-10 grid gap-6 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        {/* CHAT */}
-        <section className="flex flex-col rounded-2xl border border-slate-800 bg-slate-900/60 shadow-[0_0_0_1px_rgba(15,23,42,0.8)]">
-          <div className="border-b border-slate-800 px-4 py-3 flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-100">
-              Chat live con l’AI di AI Ads Revolution
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Online 24/7
-            </span>
-          </div>
-
-          <div className="flex-1 flex flex-col px-4 py-3 gap-3 overflow-hidden">
-            <div className="flex-1 overflow-y-auto rounded-xl bg-slate-950/60 border border-slate-800 px-3 py-3 space-y-3 text-sm">
-              {messages.length === 0 && (
-                <div className="text-slate-400 text-sm leading-relaxed">
-                  Fai una domanda su:
-                  <ul className="mt-1 list-disc list-inside space-y-0.5">
-                    <li>Quale piano è più adatto alla tua attività</li>
-                    <li>Come funziona il pagamento con Stripe</li>
-                    <li>Cosa fa l’AI sulle campagne ogni giorno</li>
-                    <li>Problemi di login o accesso alla dashboard</li>
-                  </ul>
-                </div>
-              )}
-
-              {messages.map((m, idx) => (
+      <div className="flex-1 mx-auto max-w-5xl w-full px-4 py-6 flex flex-col gap-4">
+        <div className="flex-1 bg-slate-900/60 border border-slate-800 rounded-2xl p-4 md:p-6 flex flex-col gap-4 overflow-hidden">
+          <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+            {messages.map((m, idx) => (
+              <div
+                key={idx}
+                className={`flex ${
+                  m.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
                 <div
-                  key={idx}
-                  className={`flex ${
-                    m.role === "user" ? "justify-end" : "justify-start"
+                  className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
+                    m.role === "user"
+                      ? "bg-sky-600 text-white"
+                      : "bg-slate-800 text-slate-100"
                   }`}
                 >
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
-                      m.role === "user"
-                        ? "bg-sky-600 text-sky-50 rounded-br-none"
-                        : "bg-slate-800 text-slate-50 rounded-bl-none"
-                    }`}
-                  >
-                    {m.text}
-                  </div>
+                  {m.content}
                 </div>
-              ))}
-            </div>
-
-            {error && (
-              <div className="text-xs text-rose-400 bg-rose-900/20 border border-rose-800/60 rounded-lg px-3 py-2">
-                {error}
+              </div>
+            ))}
+            {loading && (
+              <div className="flex justify-start">
+                <div className="max-w-[80%] rounded-2xl px-3 py-2 text-sm bg-slate-800 text-slate-300">
+                  Sto pensando alla soluzione migliore per le tue campagne...
+                </div>
               </div>
             )}
-
-            <form onSubmit={handleSend} className="mt-1 flex items-end gap-2">
-              <textarea
-                className="flex-1 min-h-[50px] max-h-28 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500/70 focus:border-sky-500/70 resize-none"
-                placeholder="Scrivi la tua domanda su piani, prezzi o campagne..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-              />
-              <button
-                type="submit"
-                disabled={loading || !input.trim()}
-                className="inline-flex h-[42px] items-center justify-center rounded-xl bg-sky-500 px-4 text-sm font-medium text-slate-950 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-sky-400 transition"
-              >
-                {loading ? "Sto rispondendo..." : "Invia"}
-              </button>
-            </form>
-          </div>
-        </section>
-
-        {/* SIDEBAR INFO */}
-        <aside className="space-y-4">
-          <div className="rounded-2xl border border-sky-800/60 bg-sky-950/40 px-4 py-4 text-sm">
-            <h2 className="text-sm font-semibold text-sky-100">
-              Chatbot AI per AI Ads Revolution
-            </h2>
-            <p className="mt-2 text-slate-200 text-sm">
-              Questo assistente è addestrato sui piani Basic, Pro ed Enterprise,
-              sul funzionamento della piattaforma e sui pagamenti Stripe.
-            </p>
-            <ul className="mt-3 space-y-1 text-slate-300 text-sm">
-              <li>• Non è un supporto telefonico, ma risponde in tempo reale.</li>
-              <li>• Disponibile 24/7 per chiarire dubbi su prezzi e funzionalità.</li>
-              <li>• Nessun dato della carta viene mai letto dal chatbot.</li>
-            </ul>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-4 text-sm">
-            <h3 className="text-sm font-semibold text-slate-100">
-              Suggerimenti veloci da chiedere
-            </h3>
-            <ul className="mt-2 space-y-1 text-slate-300">
-              <li>• “Che differenza c’è tra Basic e Pro?”</li>
-              <li>• “Come faccio a cancellare l’abbonamento?”</li>
-              <li>• “Come funziona il pagamento con Stripe?”</li>
-              <li>• “Il piano Basic è adatto per una piccola attività locale?”</li>
-            </ul>
-          </div>
-        </aside>
+          <form onSubmit={handleSubmit} className="mt-2 flex gap-2">
+            <input
+              type="text"
+              placeholder="Chiedimi qualcosa su piani, prezzi o campagne..."
+              className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              disabled={loading}
+            />
+            <button
+              type="submit"
+              disabled={loading || !input.trim()}
+              className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium text-slate-950"
+            >
+              {loading ? "Invio..." : "Invia"}
+            </button>
+          </form>
+          <p className="text-[11px] text-slate-500">
+            Il chatbot non sostituisce un consulente legale o fiscale. Risponde
+            solo su AI Ads Revolution, piani e funzionamento della piattaforma.
+          </p>
+        </div>
       </div>
     </main>
   );
