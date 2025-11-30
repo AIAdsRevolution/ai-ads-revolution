@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, FormEvent } from "react";
+import { useState } from "react";
 
 type Message = {
   role: "user" | "assistant";
@@ -12,19 +12,20 @@ export default function AIChatbotPage() {
     {
       role: "assistant",
       content:
-        "Ciao 👋 Sono il chatbot AI di AI Ads Revolution. Posso aiutarti con piani, prezzi, funzionamento della piattaforma e problemi di accesso.",
+        "Ciao! 👋 Sono il chatbot AI di AI Ads Revolution. Posso aiutarti con piani, prezzi, campagne e attivazione del piano Basic. Da cosa vuoi partire?",
     },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSend(e: React.FormEvent) {
     e.preventDefault();
-    const text = input.trim();
-    if (!text) return;
+    const trimmed = input.trim();
+    if (!trimmed || loading) return;
 
-    const userMsg: Message = { role: "user", content: text };
-    setMessages((prev) => [...prev, userMsg]);
+    const userMessage: Message = { role: "user", content: trimmed };
+    const newHistory = [...messages, userMessage];
+    setMessages(newHistory);
     setInput("");
     setLoading(true);
 
@@ -35,25 +36,28 @@ export default function AIChatbotPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: text,
-          page: "/ai-chatbot",
+          message: trimmed,
+          history: newHistory,
         }),
       });
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        const errText =
-          err?.error || "Errore nella risposta del chatbot AI.";
+        const errorData = await res.json().catch(() => ({}));
+        const errorMsg =
+          (errorData && errorData.error) ||
+          "Si è verificato un errore. Riprova tra poco.";
         setMessages((prev) => [
           ...prev,
           {
             role: "assistant",
-            content: `⚠️ ${errText}`,
+            content: `❌ ${errorMsg}`,
           },
         ]);
       } else {
         const data = await res.json();
-        const reply = (data.reply as string) || "Risposta non disponibile.";
+        const reply: string =
+          data.reply ||
+          "Al momento non riesco a rispondere, riprova tra poco.";
         setMessages((prev) => [
           ...prev,
           {
@@ -62,14 +66,14 @@ export default function AIChatbotPage() {
           },
         ]);
       }
-    } catch (error) {
-      console.error("Errore chiamata /api/chatbot:", error);
+    } catch (err) {
+      console.error("Errore chiamata /api/chatbot:", err);
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content:
-            "⚠️ C'è stato un problema tecnico nel contattare il chatbot. Riprova tra qualche secondo.",
+            "❌ Errore di connessione al chatbot. Verifica la rete o riprova tra poco.",
         },
       ]);
     } finally {
@@ -78,41 +82,27 @@ export default function AIChatbotPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <div className="w-full border-b border-slate-800 bg-slate-950/70 backdrop-blur">
+    <main className="min-h-screen bg-slate-950 text-slate-50 flex flex-col">
+      <header className="border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
         <div className="mx-auto max-w-5xl px-4 py-4 flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-sky-400">
-              AI Chatbot • Beta
+            <p className="text-xs uppercase tracking-[0.2em] text-sky-400/80">
+              AI Ads Revolution
             </p>
-            <h1 className="text-xl md:text-2xl font-semibold">
-              Assistente AI Ads Revolution
+            <h1 className="text-lg sm:text-xl font-semibold">
+              Chatbot AI • Assistenza 24/7
             </h1>
             <p className="text-sm text-slate-400">
-              Fai domande su piani, prezzi, campagne, login e billing. Nessuna
-              assistenza telefonica, solo AI 24/7.
+              Fai domande su piani, prezzi, campagne, fatturazione e attivazione
+              del piano Basic.
             </p>
           </div>
-          <div className="hidden md:flex flex-col items-end gap-2">
-            <a
-              href="/pricing"
-              className="text-xs px-3 py-1 rounded-full border border-sky-500/40 text-sky-300 hover:bg-sky-500/10 transition"
-            >
-              ← Torna ai piani
-            </a>
-            <a
-              href="/dashboard"
-              className="text-xs px-3 py-1 rounded-full border border-slate-700 text-slate-200 hover:bg-slate-800 transition"
-            >
-              Vai alla dashboard
-            </a>
-          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="flex-1 mx-auto max-w-5xl w-full px-4 py-6 flex flex-col gap-4">
-        <div className="flex-1 bg-slate-900/60 border border-slate-800 rounded-2xl p-4 md:p-6 flex flex-col gap-4 overflow-hidden">
-          <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+      <section className="flex-1">
+        <div className="mx-auto max-w-5xl px-4 py-4 sm:py-6 flex flex-col h-[calc(100vh-170px)]">
+          <div className="flex-1 overflow-y-auto border border-slate-800/70 rounded-2xl bg-slate-900/50 p-4 space-y-3">
             {messages.map((m, idx) => (
               <div
                 key={idx}
@@ -123,8 +113,8 @@ export default function AIChatbotPage() {
                 <div
                   className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
                     m.role === "user"
-                      ? "bg-sky-600 text-white"
-                      : "bg-slate-800 text-slate-100"
+                      ? "bg-sky-500 text-white"
+                      : "bg-slate-800 text-slate-50"
                   }`}
                 >
                   {m.content}
@@ -134,35 +124,38 @@ export default function AIChatbotPage() {
             {loading && (
               <div className="flex justify-start">
                 <div className="max-w-[80%] rounded-2xl px-3 py-2 text-sm bg-slate-800 text-slate-300">
-                  Sto pensando alla soluzione migliore per le tue campagne...
+                  Sto pensando alla risposta…
                 </div>
               </div>
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-2 flex gap-2">
+          <form
+            onSubmit={handleSend}
+            className="mt-4 flex flex-col sm:flex-row gap-2"
+          >
             <input
-              type="text"
-              placeholder="Chiedimi qualcosa su piani, prezzi o campagne..."
-              className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              disabled={loading}
+              placeholder="Scrivi la tua domanda (es: “Cosa include il piano Basic?”)..."
+              className="flex-1 rounded-2xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium text-slate-950"
+              className="rounded-2xl bg-sky-500 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 disabled:cursor-not-allowed hover:bg-sky-400 transition-colors"
             >
               {loading ? "Invio..." : "Invia"}
             </button>
           </form>
-          <p className="text-[11px] text-slate-500">
-            Il chatbot non sostituisce un consulente legale o fiscale. Risponde
-            solo su AI Ads Revolution, piani e funzionamento della piattaforma.
+
+          <p className="mt-2 text-[11px] text-slate-500">
+            Il chatbot non sostituisce consulenza legale o fiscale. Le risposte
+            sono generate dall&apos;AI sulla base delle informazioni interne di
+            AI Ads Revolution.
           </p>
         </div>
-      </div>
+      </section>
     </main>
   );
 }

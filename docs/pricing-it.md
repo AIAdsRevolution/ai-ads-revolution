@@ -1,82 +1,62 @@
-# AI Ads Revolution – Piani e prezzi (IT)
+# AI Ads Revolution – Piani e Prezzi (IT)
 
-## Hero iniziale
+## Panoramica
 
 Piani e prezzi chiari. Paghi solo per quello che usi.
 Inizia con il piano Basic e lascia che l’AI ottimizzi le tue campagne al posto tuo.
 Nessun costo di setup, nessun vincolo annuale.
 
-## Piani
+---
 
-### Basic – 19 €/mese — Ideale per iniziare
+## Piano Basic – 19 €/mese
 
-Per chi vuole iniziare e testare campagne reali con AI.
+- 1 account inserzionista
+- Fino a 3 campagne attive
+- AI copywriter per annunci sponsorizzati
+- Dashboard con impression, click, CTR e conversioni base
+- Suggerimenti AI su orari, pubblico e creatività
+- Chatbot AI di supporto integrato nella dashboard (niente telefono)
+- Cancellabile in qualsiasi momento
 
-- Accesso alla dashboard inserzionista
-- Editor annunci AI (testi, titoli, CTA)
-- Report base (impression, click, conversioni)
-- Pubblicazione automatica delle campagne su rete AI
-- Crediti mensili inclusi per piccoli test
-- Supporto via email
-- Chatbot AI integrato 24/7
+---
 
-Perfetto per provare la piattaforma con costi bassi e controllo totale.
-
-### Pro – 49 €/mese — In arrivo
-
-Per aziende e professionisti che vogliono performance serie.
+## Piano Pro – 49 €/mese (In arrivo)
 
 - Tutto del Basic
-- Targeting AI avanzato
-- Ottimizzazione automatica delle campagne
-- Reportistica avanzata (ROI, qualità traffico, audience)
-- A/B test AI automatici
-- Budget intelligente (risparmia fino al 30%)
-- Libreria creativa AI (immagini, headline, copy)
-- Priorità nel supporto via chatbot AI
+- Fino a 10 campagne attive
+- Fino a 3 brand/siti diversi
+- AI ottimizzatore automatico del budget
+- Report settimanali avanzati
+- Chatbot AI con priorità
 
-Aumenta risultati riducendo sprechi. L’AI ottimizza tutto in automatico.
+---
 
-### Enterprise – 99 €/mese — In arrivo
-
-Per aziende che vogliono massima scalabilità e analisi avanzate.
+## Piano Growth – 99 €/mese (In arrivo)
 
 - Tutto del Pro
-- Dashboard con KPI dinamici in tempo reale
-- Sistema anti-fake click AI
-- Analisi predittiva vendite/conversioni
-- Pianificazione automatica delle campagne
-- Modello AI personalizzato sul cliente
-- Export professionale CSV/PDF
-- Chatbot AI dedicato addestrato sul brand
+- Fino a 50 campagne attive
+- Fino a 10 brand
+- Analisi AI predittiva
+- Ruoli team
+- Report esportabili per investitori/partner
 
-Massima potenza AI, automazione completa e riduzione degli sprechi pubblicitari.
+---
 
 ## Perché conviene un abbonamento
 
-1. **L’AI lavora ogni giorno sulle campagne.**
-   Ottimizza budget, creatività e pubblico mentre tu fai altro.
-2. **Riduci gli sprechi di budget.**
-   Ogni euro è controllato dall’AI che blocca posizionamenti inutili.
-3. **Risultati misurabili.**
-   Dashboard semplice stile Google Ads: capisci subito cosa funziona.
-4. **Nessun vincolo.**
-   Puoi disdire quando vuoi, direttamente dalla dashboard.
-5. **Chatbot AI dedicato.**
-   Niente call center: un assistente AI risponde 24/7 su piani, billing e campagne.
+1. L’AI lavora ogni giorno sulle tue campagne.
+2. Risparmi tempo rispetto a fare tutto a mano.
+3. Riduci gli sprechi di budget.
+4. Hai un chatbot AI sempre disponibile invece del call center.
+5. Nessun vincolo annuale: puoi disdire quando vuoi.
+
+---
 
 ## Attivazione Piano Basic
 
-1. Scegli il piano Basic e clicca su “Attiva piano”.
-2. Verrai reindirizzato alla pagina di pagamento sicuro Stripe.
-3. Conferma la carta di pagamento.
-4. Torni su AI Ads Revolution e trovi il tuo account sbloccato con tutte le funzioni del Basic.
+1. Clicca su “Attiva piano”.
+2. Verrai reindirizzato alla pagina Stripe per il pagamento sicuro.
+3. Conferma la carta.
+4. Torni su AI Ads Revolution con il tuo account sbloccato.
 
-**Sicurezza pagamenti**  
-Il pagamento viene elaborato da Stripe. I dati della carta non vengono memorizzati sui server di AI Ads Revolution.
-
-## Chatbot AI – promemoria
-
-- Chatbot AI dedicato al tuo advertising
-- Risponde su piani, prezzi, funzionalità, campagne, login e billing
-- Widget flottante visibile in basso a destra su tutte le pagine (in arrivo)
+I pagamenti sono gestiti da Stripe. I dati della carta non vengono memorizzati sui server di AI Ads Revolution.

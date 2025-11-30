@@ -1,3 +1,6 @@
+
+import ChatbotWidget from "@/components/ChatbotWidget";
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
