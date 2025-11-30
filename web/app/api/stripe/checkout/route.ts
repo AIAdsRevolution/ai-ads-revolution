@@ -2,44 +2,42 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-const basicPriceId = process.env.STRIPE_BASIC_PRICE_ID;
+const basicPriceIdEnv =
+  process.env.STRIPE_BASIC_PRICE_ID || process.env.STRIPE_PRICE_BASIC;
 
 if (!stripeSecretKey) {
   console.error("❌ STRIPE_SECRET_KEY mancante nelle env");
 }
-if (!basicPriceId) {
-  console.error("❌ STRIPE_BASIC_PRICE_ID mancante nelle env");
+if (!basicPriceIdEnv) {
+  console.error(
+    "❌ STRIPE_BASIC_PRICE_ID / STRIPE_PRICE_BASIC mancante nelle env"
+  );
 }
 
-const stripe = stripeSecretKey
-  ? new Stripe(stripeSecretKey, {
-      apiVersion: "2024-06-20",
-    })
-  : null;
+const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    if (!stripe || !basicPriceId) {
+    if (!stripe || !basicPriceIdEnv) {
       return NextResponse.json(
         { error: "Stripe non configurato correttamente" },
         { status: 500 }
       );
     }
 
+    const origin =
+      req.headers.get("origin") ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      "http://localhost:3000";
+
     let body: any = {};
     try {
-      body = await request.json();
+      body = await req.json();
     } catch {
       body = {};
     }
 
-    const priceId = body.priceId || basicPriceId;
-
-    const originHeader = request.headers.get("origin");
-    const origin =
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      originHeader ||
-      "http://localhost:3000";
+    const priceId = body.priceId || basicPriceIdEnv;
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -54,7 +52,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (error: any) {
+  } catch (error) {
     console.error("❌ Errore Stripe checkout:", error);
     return NextResponse.json(
       { error: "Errore nella creazione della sessione di pagamento" },
