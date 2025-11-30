@@ -8,55 +8,118 @@ Nessun costo di setup, nessun vincolo annuale.
 
 ---
 
-## Piano Basic – 19 €/mese
+## BASIC – 19 €/mese
 
-- 1 account inserzionista
-- Fino a 3 campagne attive
-- AI copywriter per annunci sponsorizzati
-- Dashboard con impression, click, CTR e conversioni base
-- Suggerimenti AI su orari, pubblico e creatività
-- Chatbot AI di supporto integrato nella dashboard (niente telefono)
-- Cancellabile in qualsiasi momento
+Per chi vuole iniziare e testare campagne reali con AI.
 
----
+### Cosa include
 
-## Piano Pro – 49 €/mese (In arrivo)
+- Accesso alla dashboard inserzionista
+- Editor annunci AI (testi, titoli, CTA)
+- Report base (impression, click, conversioni)
+- Pubblicazione automatica delle campagne su rete AI
+- Crediti mensili inclusi per piccoli test
+- Supporto via email
+- Chatbot AI integrato 24/7
 
-- Tutto del Basic
-- Fino a 10 campagne attive
-- Fino a 3 brand/siti diversi
-- AI ottimizzatore automatico del budget
-- Report settimanali avanzati
-- Chatbot AI con priorità
+### Perché conviene
+
+Perfetto per chi vuole provare la piattaforma senza rischiare,
+con costi bassi e controllo totale.
 
 ---
 
-## Piano Growth – 99 €/mese (In arrivo)
+## PRO – 49 €/mese (In arrivo)
 
-- Tutto del Pro
-- Fino a 50 campagne attive
-- Fino a 10 brand
-- Analisi AI predittiva
-- Ruoli team
-- Report esportabili per investitori/partner
+Per aziende e professionisti che vogliono performance serie.
+
+### Cosa include
+
+- Tutto del BASIC, più:
+- Targeting AI avanzato
+- Ottimizzazione automatica delle campagne
+- Reportistica avanzata (ROI, qualità traffico, audience)
+- A/B test AI automatici
+- Budget intelligente (risparmia fino al 30%)
+- Libreria creativa AI (immagini, headline, copy)
+- Priorità nel supporto via chatbot AI
+
+### Perché conviene
+
+Aumenta risultati riducendo sprechi.
+L’AI ottimizza tutto in automatico.
+
+---
+
+## ENTERPRISE – 99 €/mese (In arrivo)
+
+Per aziende che vogliono massima scalabilità e analisi avanzate.
+
+### Cosa include
+
+- Tutto del PRO, più:
+- Dashboard con KPI dinamici in tempo reale
+- Sistema anti-fake click AI
+- Analisi predittiva vendite/conversioni
+- Pianificazione automatica delle campagne
+- Modello AI personalizzato sul cliente
+- Export professionale CSV/PDF
+- Chatbot AI dedicato addestrato sul brand
+
+### Perché conviene
+
+Massima potenza AI, automazione completa e riduzione sprechi pubblicitari.
 
 ---
 
 ## Perché conviene un abbonamento
 
-1. L’AI lavora ogni giorno sulle tue campagne.
-2. Risparmi tempo rispetto a fare tutto a mano.
-3. Riduci gli sprechi di budget.
-4. Hai un chatbot AI sempre disponibile invece del call center.
-5. Nessun vincolo annuale: puoi disdire quando vuoi.
+1. **L’AI lavora ogni giorno sulle campagne**
+   - Ottimizza budget, creatività e pubblico mentre il cliente fa altro.
+   - Impara dai risultati e propone miglioramenti continui.
+   - Riduce al minimo gli annunci che non convertono.
+
+2. **Riduzione degli sprechi di budget**
+   - Ogni euro è controllato dall’AI che blocca posizionamenti inutili.
+   - Segnala campagne che stanno bruciando soldi.
+   - Suggerisce dove spostare il budget per migliorare il ROAS.
+
+3. **Risultati misurabili**
+   - Dashboard semplice stile Google Ads.
+   - L’utente vede subito impression, click, conversioni, costo per risultato.
+   - Report chiari per capire cosa funziona davvero.
+
+4. **Nessun vincolo**
+   - Nessun contratto annuale nascosto.
+   - Puoi disdire quando vuoi, direttamente dalla dashboard.
+   - Paghi il canone mensile e controlli tu il budget pubblicitario.
+
+5. **Chatbot AI dedicato (al posto del call center)**
+   - Supporto immediato 24/7 dentro la piattaforma.
+   - FAQ intelligenti in base alle campagne del cliente.
+   - Nessuna attesa al telefono, nessuna chiamata obbligatoria.
 
 ---
 
-## Attivazione Piano Basic
+## Come funziona l’attivazione del Piano Basic
 
-1. Clicca su “Attiva piano”.
-2. Verrai reindirizzato alla pagina Stripe per il pagamento sicuro.
-3. Conferma la carta.
-4. Torni su AI Ads Revolution con il tuo account sbloccato.
+1. Scegli il piano Basic e clicca su **“Attiva piano”**.
+2. Vieni reindirizzato alla pagina di pagamento sicuro Stripe.
+3. Confermi la carta di pagamento.
+4. Torni su AI Ads Revolution con l’account sbloccato e tutte le funzioni del Basic attive.
 
-I pagamenti sono gestiti da Stripe. I dati della carta non vengono memorizzati sui server di AI Ads Revolution.
+### Sicurezza pagamenti
+
+Il pagamento viene elaborato da Stripe.
+I dati della carta **non** vengono memorizzati sui server di AI Ads Revolution.
+
+---
+
+## Chatbot AI • Coming soon
+
+Stiamo attivando un **chatbot AI addestrato su AI Ads Revolution**,
+capace di rispondere su prezzi, funzionalità, campagne, login e billing.
+
+- Il widget sarà visibile in basso a destra su tutte le pagine del sito.
+- Risposte in tempo reale 24/7.
+- Pensato per sostituire il supporto telefonico con un assistente AI dedicato.
