@@ -1,119 +1,50 @@
 import os
-from datetime import date
-
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
-from dotenv import load_dotenv
-import httpx
-
-load_dotenv()
+from openai import OpenAI
 
 app = FastAPI()
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+# Client OpenAI che usa la variabile di ambiente OPENAI_API_KEY (quella che hai messo su Render)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-
-class MetricsUpdate(BaseModel):
-    campaign_id: str
-    impressions: int
-    clicks: int
-    cost: float
-    revenue: float
-
+class AdRequest(BaseModel):
+    product: str
+    audience: str
+    budget: float
 
 @app.get("/health")
-async def health():
-    return {"status": "ok", "service": "ai-core", "version": "0.3.0"}
+def health():
+    return {"status": "ok", "service": "ai-core", "version": "0.4.0"}
 
+@app.post("/ai/generate-ad")
+async def generate_ad(req: AdRequest):
+    prompt = f"""
+Sei il motore neurale di advertising di AI Ads Revolution.
+Crea una proposta di campagna pubblicitaria in italiano con:
+- Titolo annuncio
+- Testo principale
+- Call to action
+- Suggerimento immagine
+- Strategia di budget su {req.budget} €/mese
+- Target: {req.audience}
+- Prodotto/servizio: {req.product}
+Rispondi in formato JSON.
+"""
 
-@app.get("/metrics/demo")
-async def metrics_demo():
-    return {
-        "ai_on": True,
-        "intent": "alto",
-        "ctr": 31.0,
-        "cpc": 0.21,
-        "roas": 4.7,
-        "window_days": 28,
-    }
+    # Chiamata a GPT-4.1-mini tramite API "responses"
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=prompt,
+    )
 
-
-@app.post("/metrics/update")
-async def metrics_update(payload: MetricsUpdate):
-    """
-    Riceve le metriche della campagna e le salva su Supabase
-    nella tabella campaign_metrics, poi ritorna i KPI calcolati.
-    """
-    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
-        raise HTTPException(
-            status_code=500,
-            detail="Supabase non è configurato (manca SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY).",
-        )
-
-    ctr = (payload.clicks / payload.impressions * 100.0) if payload.impressions > 0 else 0.0
-    cpc = (payload.cost / payload.clicks) if payload.clicks > 0 else 0.0
-    roas = (payload.revenue / payload.cost) if payload.cost > 0 else 0.0
-
-    supabase_rest_url = f"{SUPABASE_URL}/rest/v1/campaign_metrics"
-
-    row_to_insert = {
-        "campaign_id": payload.campaign_id,
-        "impressions": payload.impressions,
-        "clicks": payload.clicks,
-        "cost": payload.cost,
-        "revenue": payload.revenue,
-        "date": date.today().isoformat(),
-    }
-
-    headers = {
-        "apikey": SUPABASE_SERVICE_ROLE_KEY,
-        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
-        "Content-Type": "application/json",
-        "Prefer": "return=representation",
-    }
-
-    saved_row = None
-
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        try:
-            resp = await client.post(
-                supabase_rest_url,
-                json=row_to_insert,
-                headers=headers,
-            )
-            if resp.status_code in (200, 201):
-                data = resp.json()
-                if isinstance(data, list) and data:
-                    saved_row = data[0]
-                else:
-                    saved_row = data
-            else:
-                # Errore “loggato” ma NON buttare giù tutto
-                print(
-                    f"[AI-CORE] Errore Supabase: status={resp.status_code}, body={resp.text}"
-                )
-        except Exception as e:
-            # Qui vediamo l’errore vero
-            print(f"[AI-CORE] Eccezione chiamata Supabase: {e}")
-
-    return {
-        "ai_on": True,
-        "intent": "alto",
-        "ctr": round(ctr, 1),
-        "cpc": round(cpc, 2),
-        "roas": round(roas, 1),
-        "window_days": 28,
-        "saved_row": saved_row,
-    }
-
+    text = response.output[0].content[0].text
+    return {"ok": True, "result": text}
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=int(os.getenv("PORT", "8001")),
-        reload=True,
     )
