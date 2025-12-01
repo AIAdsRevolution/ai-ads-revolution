@@ -1,79 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 
 type Message = {
-  role: "user" | "assistant";
-  content: string;
+  from: "user" | "bot";
+  text: string;
 };
 
 export default function AIChatbotPage() {
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
-      role: "assistant",
-      content:
+      from: "bot",
+      text:
         "Ciao! 👋 Sono il chatbot AI di AI Ads Revolution. Posso aiutarti con piani, prezzi, campagne e attivazione del piano Basic. Da cosa vuoi partire?",
     },
   ]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  async function handleSend(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const trimmed = input.trim();
-    if (!trimmed || loading) return;
+    const question = input.trim();
+    if (!question) return;
 
-    const userMessage: Message = { role: "user", content: trimmed };
-    const newHistory = [...messages, userMessage];
-    setMessages(newHistory);
-    setInput("");
+    setError(null);
     setLoading(true);
+    setMessages((prev) => [...prev, { from: "user", text: question }]);
+    setInput("");
 
     try {
       const res = await fetch("/api/chatbot", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: trimmed,
-          history: newHistory,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
       });
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        const errorMsg =
-          (errorData && errorData.error) ||
-          "Si è verificato un errore. Riprova tra poco.";
+      const data = await res.json();
+
+      if (!res.ok || !data || (!data.answer && data.error)) {
+        setError(data?.error || "Errore nel chatbot AI. Riprova più tardi.");
         setMessages((prev) => [
           ...prev,
           {
-            role: "assistant",
-            content: `❌ ${errorMsg}`,
+            from: "bot",
+            text:
+              "❌ Errore nel chatbot AI. Riprova più tardi o verifica la configurazione.",
           },
         ]);
-      } else {
-        const data = await res.json();
-        const reply: string =
-          data.reply ||
-          "Al momento non riesco a rispondere, riprova tra poco.";
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: reply,
-          },
-        ]);
+        setLoading(false);
+        return;
       }
+
+      const answer: string = data.answer;
+      setMessages((prev) => [...prev, { from: "bot", text: answer }]);
     } catch (err) {
-      console.error("Errore chiamata /api/chatbot:", err);
+      console.error("Errore chiamata chatbot:", err);
+      setError("Errore di connessione al chatbot. Riprova più tardi.");
       setMessages((prev) => [
         ...prev,
         {
-          role: "assistant",
-          content:
-            "❌ Errore di connessione al chatbot. Verifica la rete o riprova tra poco.",
+          from: "bot",
+          text:
+            "❌ Errore di connessione al chatbot. Controlla la connessione o riprova più tardi.",
         },
       ]);
     } finally {
@@ -82,80 +71,82 @@ export default function AIChatbotPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 flex flex-col">
-      <header className="border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
-        <div className="mx-auto max-w-5xl px-4 py-4 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-sky-400/80">
-              AI Ads Revolution
-            </p>
-            <h1 className="text-lg sm:text-xl font-semibold">
-              Chatbot AI • Assistenza 24/7
-            </h1>
-            <p className="text-sm text-slate-400">
-              Fai domande su piani, prezzi, campagne, fatturazione e attivazione
-              del piano Basic.
-            </p>
-          </div>
-        </div>
-      </header>
+    <main className="min-h-screen bg-slate-950 text-slate-50 flex flex-col items-center px-4 py-10">
+      <div className="w-full max-w-3xl">
+        <h1 className="text-2xl md:text-3xl font-semibold mb-2">
+          AI Ads Revolution
+        </h1>
+        <p className="text-slate-300 mb-1">
+          <span className="font-semibold">Chatbot AI • Assistenza 24/7</span>
+        </p>
+        <p className="text-slate-400 mb-4">
+          Fai domande su piani, prezzi, campagne, fatturazione e attivazione del
+          piano Basic.
+        </p>
 
-      <section className="flex-1">
-        <div className="mx-auto max-w-5xl px-4 py-4 sm:py-6 flex flex-col h-[calc(100vh-170px)]">
-          <div className="flex-1 overflow-y-auto border border-slate-800/70 rounded-2xl bg-slate-900/50 p-4 space-y-3">
+        <div className="border border-slate-800 bg-slate-900/60 rounded-2xl p-4 mb-3 h-[420px] flex flex-col">
+          <div className="flex-1 overflow-y-auto space-y-3 pr-1">
             {messages.map((m, idx) => (
               <div
                 key={idx}
-                className={`flex ${
-                  m.role === "user" ? "justify-end" : "justify-start"
-                }`}
+                className={
+                  m.from === "user"
+                    ? "text-right"
+                    : "text-left"
+                }
               >
                 <div
-                  className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
-                    m.role === "user"
-                      ? "bg-sky-500 text-white"
-                      : "bg-slate-800 text-slate-50"
-                  }`}
+                  className={
+                    "inline-block px-3 py-2 rounded-xl text-sm " +
+                    (m.from === "user"
+                      ? "bg-blue-600 text-white"
+                      : "bg-slate-800 text-slate-100")
+                  }
                 >
-                  {m.content}
+                  {m.text}
                 </div>
               </div>
             ))}
             {loading && (
-              <div className="flex justify-start">
-                <div className="max-w-[80%] rounded-2xl px-3 py-2 text-sm bg-slate-800 text-slate-300">
-                  Sto pensando alla risposta…
+              <div className="text-left">
+                <div className="inline-block px-3 py-2 rounded-xl text-sm bg-slate-800 text-slate-300">
+                  Sto pensando alla risposta...
                 </div>
               </div>
             )}
           </div>
 
-          <form
-            onSubmit={handleSend}
-            className="mt-4 flex flex-col sm:flex-row gap-2"
-          >
+          <form onSubmit={handleSubmit} className="mt-3 flex gap-2">
             <input
+              type="text"
+              className="flex-1 rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder='Scrivi la tua domanda (es: "Cosa include il piano Basic?")...'
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Scrivi la tua domanda (es: “Cosa include il piano Basic?”)..."
-              className="flex-1 rounded-2xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+              disabled={loading}
             />
             <button
               type="submit"
-              disabled={loading || !input.trim()}
-              className="rounded-2xl bg-sky-500 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 disabled:cursor-not-allowed hover:bg-sky-400 transition-colors"
+              disabled={loading}
+              className="rounded-xl bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Invio..." : "Invia"}
             </button>
           </form>
-
-          <p className="mt-2 text-[11px] text-slate-500">
-            Il chatbot non sostituisce consulenza legale o fiscale. Le risposte
-            sono generate dall&apos;AI sulla base delle informazioni interne di
-            AI Ads Revolution.
-          </p>
         </div>
-      </section>
+
+        {error && (
+          <p className="text-sm text-red-400 mb-2">
+            {error}
+          </p>
+        )}
+
+        <p className="text-xs text-slate-500">
+          Il chatbot non sostituisce consulenza legale o fiscale. Le risposte
+          sono generate dall&apos;AI sulla base delle informazioni interne di AI
+          Ads Revolution.
+        </p>
+      </div>
     </main>
   );
 }
