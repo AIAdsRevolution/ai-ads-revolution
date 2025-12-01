@@ -3,10 +3,11 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
 
-# Client OpenAI - usa OPENAI_API_KEY da Render
-client = OpenAI()
-
+# Inizializza FastAPI
 app = FastAPI()
+
+# Client OpenAI: userà la variabile d'ambiente OPENAI_API_KEY su Render
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class AdRequest(BaseModel):
     product: str
@@ -14,12 +15,8 @@ class AdRequest(BaseModel):
     budget: float
 
 @app.get("/health")
-async def health():
-    return {
-        "status": "ok",
-        "service": "ai-core",
-        "version": "0.4.0",
-    }
+def health():
+    return {"status": "ok", "service": "ai-core", "version": "0.4.1"}
 
 @app.post("/ai/generate-ad")
 async def generate_ad(req: AdRequest):
@@ -44,7 +41,7 @@ Rispondi in JSON compatto con chiavi: titolo, testo, cta, immagine, strategia.
     text = response.output[0].content[0].text
     return {"ok": True, "result": text}
 
-# Avvio locale (Render userà comunque uvicorn main:app)
+# Avvio locale (Render usa comunque uvicorn main:app)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
