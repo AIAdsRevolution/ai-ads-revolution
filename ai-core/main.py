@@ -3,10 +3,10 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
 
-app = FastAPI()
+# Client OpenAI - usa OPENAI_API_KEY da Render
+client = OpenAI()
 
-# Client OpenAI che usa la variabile di ambiente OPENAI_API_KEY (quella che hai messo su Render)
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+app = FastAPI()
 
 class AdRequest(BaseModel):
     product: str
@@ -14,8 +14,12 @@ class AdRequest(BaseModel):
     budget: float
 
 @app.get("/health")
-def health():
-    return {"status": "ok", "service": "ai-core", "version": "0.4.0"}
+async def health():
+    return {
+        "status": "ok",
+        "service": "ai-core",
+        "version": "0.4.0",
+    }
 
 @app.post("/ai/generate-ad")
 async def generate_ad(req: AdRequest):
@@ -29,10 +33,9 @@ Crea una proposta di campagna pubblicitaria in italiano con:
 - Strategia di budget su {req.budget} €/mese
 - Target: {req.audience}
 - Prodotto/servizio: {req.product}
-Rispondi in formato JSON.
+Rispondi in JSON compatto con chiavi: titolo, testo, cta, immagine, strategia.
 """
 
-    # Chiamata a GPT-4.1-mini tramite API "responses"
     response = client.responses.create(
         model="gpt-4.1-mini",
         input=prompt,
@@ -41,6 +44,7 @@ Rispondi in formato JSON.
     text = response.output[0].content[0].text
     return {"ok": True, "result": text}
 
+# Avvio locale (Render userà comunque uvicorn main:app)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
@@ -48,36 +52,3 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=int(os.getenv("PORT", "8001")),
     )
-from pydantic import BaseModel
-from openai import OpenAI
-
-# Client OpenAI che usa la variabile d'ambiente OPENAI_API_KEY
-client = OpenAI()
-
-class AdRequest(BaseModel):
-    product: str
-    audience: str
-    budget: float
-
-@app.post("/ai/generate-ad")
-async def generate_ad(req: AdRequest):
-    prompt = f"""
-Sei il motore neurale di advertising di AI Ads Revolution.
-Crea una proposta di campagna pubblicitaria in italiano con:
-- Titolo annuncio
-- Testo principale
-- Call to action
-- Suggerimento immagine
-- Strategia di budget su {req.budget} €/mese
-- Target: {req.audience}
-- Prodotto/servizio: {req.product}
-Rispondi in formato JSON compatto.
-"""
-
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        input=prompt,
-    )
-
-    text = response.output[0].content[0].text
-    return {"ok": True, "result": text}
