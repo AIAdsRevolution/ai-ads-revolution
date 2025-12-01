@@ -48,3 +48,36 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=int(os.getenv("PORT", "8001")),
     )
+from pydantic import BaseModel
+from openai import OpenAI
+
+# Client OpenAI che usa la variabile d'ambiente OPENAI_API_KEY
+client = OpenAI()
+
+class AdRequest(BaseModel):
+    product: str
+    audience: str
+    budget: float
+
+@app.post("/ai/generate-ad")
+async def generate_ad(req: AdRequest):
+    prompt = f"""
+Sei il motore neurale di advertising di AI Ads Revolution.
+Crea una proposta di campagna pubblicitaria in italiano con:
+- Titolo annuncio
+- Testo principale
+- Call to action
+- Suggerimento immagine
+- Strategia di budget su {req.budget} €/mese
+- Target: {req.audience}
+- Prodotto/servizio: {req.product}
+Rispondi in formato JSON compatto.
+"""
+
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=prompt,
+    )
+
+    text = response.output[0].content[0].text
+    return {"ok": True, "result": text}
