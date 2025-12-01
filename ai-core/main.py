@@ -4,24 +4,24 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
 
-# Inizializza FastAPI
+# App FastAPI
 app = FastAPI()
 
-# Client OpenAI (usa la variabile d'ambiente OPENAI_API_KEY su Render)
+# Client OpenAI: usa la variabile di ambiente OPENAI_API_KEY
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Modello dati per la richiesta
+# Modello dati per la richiesta dell'inserzionista
 class AdRequest(BaseModel):
     product: str
     audience: str
     budget: float
 
-# Health check
+# Health check (usiamo una versione nuova così capiamo se il deploy è aggiornato)
 @app.get("/health")
-def health():
+async def health():
     return {"status": "ok", "service": "ai-core", "version": "0.4.1"}
 
-# Endpoint AI: genera campagna
+# Endpoint AI: genera una campagna pubblicitaria
 @app.post("/ai/generate-ad")
 async def generate_ad(req: AdRequest):
     prompt = f"""
