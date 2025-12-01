@@ -1,24 +1,27 @@
 import os
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
 
-# Istanza FastAPI
+# Inizializza FastAPI
 app = FastAPI()
 
-# Client OpenAI (usa la variabile di ambiente OPENAI_API_KEY su Render)
+# Client OpenAI (usa la variabile d'ambiente OPENAI_API_KEY su Render)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Modello per la richiesta
+# Modello dati per la richiesta
 class AdRequest(BaseModel):
     product: str
     audience: str
     budget: float
 
+# Health check
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "ai-core", "version": "0.4.0"}
+    return {"status": "ok", "service": "ai-core", "version": "0.4.1"}
 
+# Endpoint AI: genera campagna
 @app.post("/ai/generate-ad")
 async def generate_ad(req: AdRequest):
     prompt = f"""
@@ -34,7 +37,6 @@ Crea una proposta di campagna pubblicitaria in italiano con:
 Rispondi in JSON compatto con chiavi: titolo, testo, cta, immagine, strategia.
 """
 
-    # Chiamata a GPT-4.1-mini tramite API "responses"
     response = client.responses.create(
         model="gpt-4.1-mini",
         input=prompt,
@@ -43,7 +45,7 @@ Rispondi in JSON compatto con chiavi: titolo, testo, cta, immagine, strategia.
     text = response.output[0].content[0].text
     return {"ok": True, "result": text}
 
-# Avvio locale (Render usa comunque uvicorn main:app)
+# Avvio locale (Render usa comunque: uvicorn main:app ...)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
