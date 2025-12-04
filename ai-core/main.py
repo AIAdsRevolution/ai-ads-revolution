@@ -6,29 +6,35 @@ from openai import OpenAI
 # Inizializza FastAPI
 app = FastAPI()
 
-# Client OpenAI: legge la tua chiave da OPENAI_API_KEY
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Client OpenAI - prende la chiave da OPENAI_API_KEY (Render + locale)
+client = OpenAI()
 
-# Modello dati per la richiesta
 class AdRequest(BaseModel):
     product: str
     audience: str
     budget: float
 
-# Health check
 @app.get("/health")
-async def health():
+def health():
     return {
         "status": "ok",
         "service": "ai-core",
-        "version": "0.6.0",
+        "version": "0.8.0"
     }
 
-# Endpoint AI: genera campagna
 @app.post("/ai/generate-ad")
 async def generate_ad(req: AdRequest):
-    prompt = f"""
-Sei il motore neurale di advertising di AI Ads Revolution.
+    """
+    Endpoint neurale: genera una proposta di campagna
+    usando GPT-4.1-mini via chat.completions
+    """
+    system_msg = (
+        "Sei il motore neurale di advertising di AI Ads Revolution. "
+        "Rispondi sempre in JSON compatto con le chiavi: "
+        "titolo, testo, cta, immagine, strategia."
+    )
+
+    user_msg = f"""
 Crea una proposta di campagna pubblicitaria in italiano con:
 - Titolo annuncio (campo: titolo)
 - Testo principale (campo: testo)
@@ -37,26 +43,17 @@ Crea una proposta di campagna pubblicitaria in italiano con:
 - Strategia di budget (campo: strategia) su {req.budget} €/mese
 - Target: {req.audience}
 - Prodotto/servizio: {req.product}
-Rispondi SOLO in JSON compatto con chiavi: titolo, testo, cta, immagine, strategia.
+Rispondi SOLO con un JSON valido.
 """
 
     try:
         completion = client.chat.completions.create(
             model="gpt-4.1-mini",
             messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "Sei il motore neurale di advertising di AI Ads Revolution. "
-                        "Rispondi SEMPRE e SOLO in JSON valido."
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": prompt,
-                },
+                {"role": "system", "content": system_msg},
+                {"role": "user", "content": user_msg},
             ],
-            response_format={"type": "json_object"},
+            temperature=0.7,
         )
 
         text = completion.choices[0].message.content
@@ -65,14 +62,13 @@ Rispondi SOLO in JSON compatto con chiavi: titolo, testo, cta, immagine, strateg
             "result": text,
         }
     except Exception as e:
-        # Log di errore lato server
         print("Errore OpenAI:", e)
         return {
             "ok": False,
             "error": str(e),
         }
 
-# Avvio locale (Render userà comunque: uvicorn main:app)
+# Avvio locale (Render usa: uvicorn main:app ...)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
