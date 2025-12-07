@@ -1,34 +1,53 @@
 import { NextResponse } from "next/server";
 
-const AI_CORE_URL = process.env.AI_CORE_URL || "http://localhost:8001";
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+/**
+ * API /api/ai/metrics
+ *
+ * Ritorna le metriche delle campagne leggendo direttamente
+ * dalla tabella campaign_metrics su Supabase.
+ *
+ * Output: { metrics: [...] }
+ */
 export async function GET() {
   try {
-    const res = await fetch(`${AI_CORE_URL}/metrics/demo`, {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error("[AI Metrics] Variabili Supabase mancanti");
+      // Non esplodere: ritorna array vuoto
+      return NextResponse.json({ metrics: [] }, { status: 200 });
+    }
+
+    const url = `${SUPABASE_URL}/rest/v1/campaign_metrics?select=*`;
+
+    const res = await fetch(url, {
       method: "GET",
-      cache: "no-store",
+      headers: {
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        Accept: "application/json",
+      },
     });
 
     if (!res.ok) {
-      throw new Error(`AI core error: ${res.status}`);
+      const text = await res.text();
+      console.error("[AI Metrics] Errore Supabase:", res.status, text);
+      // Non mandiamo errore al frontend, ma un array vuoto
+      return NextResponse.json({ metrics: [] }, { status: 200 });
     }
 
-    const data = await res.json();
+    const rows = await res.json();
 
-    return NextResponse.json(data);
-  } catch (err: any) {
-    console.error("Error calling AI core:", err.message);
     return NextResponse.json(
       {
-        ai_on: false,
-        intent: "indisponibile",
-        ctr: 0.0,
-        cpc: 0.0,
-        roas: 0.0,
-        window_days: 28,
-        error: "AI core non disponibile",
+        metrics: rows ?? [],
       },
       { status: 200 }
     );
+  } catch (err) {
+    console.error("[AI Metrics] Errore inaspettato:", err);
+    return NextResponse.json({ metrics: [] }, { status: 200 });
   }
 }
+
