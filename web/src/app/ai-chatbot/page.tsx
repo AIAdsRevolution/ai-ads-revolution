@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
 type ChatMessage = {
@@ -14,11 +14,8 @@ export default function AIChatbotPage() {
     {
       id: 1,
       role: "assistant",
-      content: [
-        "Ciao! 👋 Sono il chatbot AI di AI Ads Revolution.",
-        "Posso aiutarti con piani, prezzi, campagne e attivazione del piano Basic.",
-        "Da cosa vuoi partire?",
-      ].join(" "),
+      content:
+        "Ciao! 👋 Sono il chatbot AI di AI Ads Revolution. Posso aiutarti con piani, prezzi, campagne e attivazione del piano Basic. Da cosa vuoi partire?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -62,7 +59,8 @@ export default function AIChatbotPage() {
 
       const data = await res.json();
       const replyText: string =
-        data.reply || "Al momento non riesco a rispondere, riprova tra poco.";
+        data.reply ??
+        "Al momento non riesco a rispondere, riprova tra poco.";
 
       const botMsg: ChatMessage = {
         id: counter + 1,
@@ -87,7 +85,9 @@ export default function AIChatbotPage() {
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -101,38 +101,60 @@ export default function AIChatbotPage() {
         <header className="mb-4 flex items-center justify-between border-b border-slate-800/80 pb-3">
           <div>
             <p className="text-xs uppercase tracking-[0.26em] text-emerald-400/80">
-              AI Ads Revolution
+              AI Assistant · Online · Live
             </p>
             <h1 className="mt-1 text-xl font-semibold">
-              Chatbot AI · Assistenza 24/7
+              AI Ads Revolution
             </h1>
             <p className="mt-1 text-xs text-slate-400">
-              Fai domande su piani, prezzi, strategie di base e sul
-              funzionamento della piattaforma. Il chatbot non sostituisce
-              consulenza legale o fiscale.
+              Neural Advertising Engine · AI Assistant · Chatbot per piani,
+              prezzi e setup campagne.
             </p>
           </div>
           <Link
             href="/"
-            className="hidden rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1.5 text-xs text-slate-200 hover:border-emerald-400 hover:text-emerald-200 
-transition-colors md:inline-flex"
+            className="hidden rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1.5 text-xs text-slate-200 hover:border-emerald-400 hover:text-emerald-200 transition-colors md:inline-flex"
           >
             ← Torna alla home
           </Link>
         </header>
 
-        {/* AREA CHAT */}
+        {/* CARD CHAT */}
         <div className="flex flex-1 flex-col rounded-2xl border border-slate-800 bg-slate-950/80 backdrop-blur-xl p-4 shadow-[0_0_35px_rgba(15,23,42,0.9)]">
-          <div className="mb-3 flex items-center justify-between text-xs text-slate-400">
-            <span>
-              Stato:{" "}
-              <span className="inline-flex items-center gap-1 text-emerald-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
-                Online
+          {/* STATUS + BOTTONE SFERA FUTURISTICA */}
+          <div className="mb-3 flex items-center justify-between gap-3 text-xs text-slate-400">
+            <div className="flex flex-col">
+              <span>
+                Stato:{" "}
+                <span className="inline-flex items-center gap-1 text-emerald-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
+                  Online
+                </span>
               </span>
-            </span>
-            <span>Motore: OpenAI · AI Ads Neural Assistant</span>
+              <span className="mt-0.5 text-[11px] text-slate-500">
+                Motore: OpenAI · modello ottimizzato per assistenza inserzionisti.
+              </span>
+            </div>
+
+            {/* 🔮 SFERA LUMINOSA - NUOVO BOTTONE CHATBOT */}
+            <button
+              type="button"
+              aria-label="Chatbot AI Ads Revolution"
+              className="relative flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-tr from-emerald-400 via-cyan-400 to-violet-500 shadow-[0_0_24px_rgba(94,234,212,0.9)] transition-transform hover:scale-105 active:scale-95"
+            >
+              <span className="absolute inset-[3px] rounded-full bg-slate-950" />
+              <span className="relative h-2.5 w-2.5 rounded-full bg-emerald-200 shadow-[0_0_14px_rgba(52,211,153,1)]" />
+            </button>
           </div>
+
+          <h2 className="mb-2 text-sm font-semibold text-slate-100">
+            Chatbot AI · Assistenza 24/7
+          </h2>
+          <p className="mb-3 text-[11px] text-slate-500">
+            Fai domande su piani, prezzi, strategie di base e funzionamento
+            della piattaforma. Il chatbot non sostituisce consulenza legale
+            o fiscale.
+          </p>
 
           {/* MESSAGGI */}
           <div className="flex-1 space-y-3 overflow-y-auto rounded-xl border border-slate-800 bg-slate-950/80 p-3 text-sm">
@@ -166,8 +188,7 @@ transition-colors md:inline-flex"
           {/* INPUT */}
           <div className="mt-3 flex flex-col gap-2">
             <textarea
-              className="min-h-[70px] w-full resize-none rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 outline-none 
-focus:border-emerald-400"
+              className="min-h-[70px] w-full resize-none rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 outline-none focus:border-emerald-400"
               placeholder="Scrivi la tua domanda su piani, prezzi o campagne..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -175,14 +196,13 @@ focus:border-emerald-400"
             />
             <div className="flex items-center justify-between gap-2">
               <p className="text-[11px] text-slate-500">
-                Il chatbot non sostituisce consulenza legale, fiscale o
-                professionale. Usa le risposte come supporto informativo.
+                Le risposte sono generate dall&apos;AI e potrebbero contenere
+                errori. Usa le indicazioni come supporto informativo.
               </p>
               <button
                 onClick={sendMessage}
                 disabled={loading || !input.trim()}
-                className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-slate-950 
-shadow-[0_0_20px_rgba(16,185,129,0.6)] hover:bg-emerald-300 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.6)] hover:bg-emerald-300 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? "Invio..." : "Invia"}
               </button>
@@ -193,4 +213,3 @@ shadow-[0_0_20px_rgba(16,185,129,0.6)] hover:bg-emerald-300 transition-colors di
     </main>
   );
 }
-

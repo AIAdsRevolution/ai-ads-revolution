@@ -406,7 +406,84 @@ export default function HomePage() {
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-sm font-medium text-slate-100">
-                Community e aggiornamenti
+            <p className="text-sm text-slate-400 mb-4">
+              Ideale per iniziare a testare campagne AI in modo sicuro.
+            </p>
+            <p className="text-emerald-300 text-2xl font-semibold mb-2">€ 19</p>
+            <p className="text-xs text-slate-500 mb-4">/ mese, cancellabile in qualsiasi momento</p>
+            <ul className="text-sm space-y-1 text-slate-300 mb-6">
+              <li>• Accesso alla dashboard inserzionista</li>
+              <li>• AI copywriter per annunci sponsorizzati</li>
+              <li>• Report base su impression, click e conversioni</li>
+              <li>• Supporto email per la fase beta</li>
+            </ul>
+            <button
+              onClick={handleBasicCheckout}
+              className="w-full bg-emerald-500 text-black py-2 rounded-xl hover:bg-emerald-400 transition"
+            >
+              Attiva piano Basic
+            </button>
+          </div>
+
+          {/* ADVANCED */}
+          <div className="border border-slate-800 rounded-2xl p-6 bg-slate-900/40">
+            <h3 className="text-xl font-semibold mb-2">Advanced</h3>
+            <p className="text-sm text-slate-400 mb-4">
+              Per e-commerce e aziende che vogliono far crescere il budget in modo controllato.
+            </p>
+            <p className="text-emerald-300 text-2xl font-semibold mb-2">€ 49</p>
+            <p className="text-xs text-slate-500 mb-4">/ mese</p>
+            <ul className="text-sm space-y-1 text-slate-300 mb-6">
+              <li>• Tutto del piano Basic</li>
+              <li>• Segmentazione avanzata per funnel (TOFU / MOFU / BOFU)</li>
+              <li>• Report ROAS per canale e per campagna</li>
+              <li>• Consigli AI per creatività e landing page</li>
+            </ul>
+            <a
+              href="mailto:admin@aiadsrevolution.com?subject=Informazioni%20piano%20Advanced"
+              className="block text-center w-full border border-emerald-500 py-2 rounded-xl text-emerald-300 hover:bg-emerald-500/10 transition"
+            >
+              Contattaci per Advanced
+            </a>
+          </div>
+
+          {/* ULTRA */}
+          <div className="border border-slate-800 rounded-2xl p-6 bg-slate-900/40">
+            <h3 className="text-xl font-semibold mb-2">Ultra</h3>
+            <p className="text-sm text-slate-400 mb-4">
+              Per aziende strutturate, marketplace e brand con volumi importanti di spesa adv.
+            </p>
+            <p className="text-emerald-300 text-2xl font-semibold mb-2">Su misura</p>
+            <ul className="text-sm space-y-1 text-slate-300 mb-6">
+              <li>• Tutto del piano Advanced</li>
+              <li>• Setup e onboarding dedicato</li>
+              <li>• Consulenza strategica su misurazione e tracciamenti</li>
+              <li>• Accesso prioritario a nuove feature AI</li>
+            </ul>
+            <a
+              href="mailto:admin@aiadsrevolution.com?subject=Soluzione%20Ultra%20su%20misura"
+              className="block text-center w-full border border-emerald-500 py-2 rounded-xl text-emerald-300 hover:bg-emerald-500/10 transition"
+            >
+              Parla con noi
+            </a>
+          </div>
+        </div>
+
+        <div className="mt-10 text-center">
+          <Link
+            href="/pricing"
+            className="inline-block px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-400 text-black font-semibold rounded-xl hover:scale-105 transition"
+          >
+            Vedi tutti i piani →
+          </Link>
+        </div>
+      </section>
+                
+
+
+
+
+Community e aggiornamenti
               </p>
               <p className="mt-1 text-xs text-slate-400">
                 Segui AI Ads Revolution sui canali ufficiali per aggiornamenti, roadmap e casi studio.
