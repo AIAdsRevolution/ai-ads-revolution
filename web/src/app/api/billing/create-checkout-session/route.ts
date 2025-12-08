@@ -1,53 +1,26 @@
-import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { NextResponse } from "next/server";
+import { plans } from "../plans";
 
-const stripeSecret = process.env.STRIPE_SECRET_KEY;
-const basicPriceId = process.env.STRIPE_BASIC_PRICE_ID;
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-// Inizializza Stripe senza apiVersion forzata (usa quella del pacchetto)
-const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
-
-export async function POST() {
-  if (!stripe || !basicPriceId) {
-    console.error("Stripe non configurato:", {
-      hasSecret: !!stripeSecret,
-      hasPrice: !!basicPriceId,
-    });
-
-    return NextResponse.json(
-      {
-        error: "Stripe non è configurato correttamente. Contatta il supporto o riprova più tardi.",
-      },
-      { status: 500 }
-    );
-  }
-
+export async function POST(req: Request) {
   try {
+    const { planId } = await req.json();
+
+    const plan = plans[planId];
+    if (!plan) return NextResponse.json({ error: "Piano non valido" }, { status: 400 });
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price: basicPriceId,
-          quantity: 1,
-        },
-      ],
-      success_url: `${
-        process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.aiadsrevolution.com"
-      }/?checkout=success`,
-      cancel_url: `${
-        process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.aiadsrevolution.com"
-      }/?checkout=cancel`,
+      line_items: [{ price: plan.stripe_price_id, quantity: 1 }],
+      success_url: `${process.env.NEXT_PUBLIC_URL}/dashboard?success=1`,
+      cancel_url: `${process.env.NEXT_PUBLIC_URL}/piani`,
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (error) {
-    console.error("Errore creazione sessione Stripe:", error);
-    return NextResponse.json(
-      {
-        error: "Errore durante la creazione della sessione di pagamento Stripe.",
-      },
-      { status: 500 }
-    );
+  } catch (err) {
+    console.error("Stripe error:", err);
+    return NextResponse.json({ error: "Errore durante il checkout" }, { status: 500 });
   }
 }
