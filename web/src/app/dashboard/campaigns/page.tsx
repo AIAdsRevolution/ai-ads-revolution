@@ -49,6 +49,7 @@ function Td({ children }: { children: React.ReactNode }) {
 
 export default function CampaignsPage() {
   const [q, setQ] = useState("");
+  const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const [status, setStatus] = useState<"ALL" | "ENABLED" | "PAUSED">("ALL");
   const [channel, setChannel] = useState<"ALL" | CampaignRow["channel"]>("ALL");
 
@@ -75,6 +76,12 @@ export default function CampaignsPage() {
 
   return (
     <div className="p-6">
+      {errorBanner && (
+        <div className="mb-4 rounded-2xl border border-amber-900/50 bg-amber-950/25 p-4">
+          <div className="text-sm font-semibold text-amber-200">Avviso</div>
+          <div className="mt-1 text-sm text-amber-300">{errorBanner}</div>
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-xl font-semibold text-slate-100">Campagne</div>
