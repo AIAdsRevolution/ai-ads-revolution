@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { SparklineCard } from "@/components/dashboard/SparklineCard";
+import { SparklineCard } from "../../components/dashboard/SparklineCard";
 
 function StatCard({ label, value, note }: { label: string; value: string; note: string }) {
   return (
