@@ -160,7 +160,7 @@ export default function DashboardInserzionistaPage() {
           </p>
           <p className="text-xs text-slate-500 mb-4">
             Panoramica sintetica delle performance delle tue
-            campagne AI. Modalità demo attiva.
+            campagne AI. Modalità preview attiva.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>

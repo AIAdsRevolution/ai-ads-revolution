@@ -58,7 +58,7 @@ border border-emerald-500/60 bg-emerald-500/10 px-3 py-1 text-[11px]
 font-medium text-emerald-200">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 
 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
-                Uptime demo
+                Uptime preview
               </span>
             </div>
           </div>
@@ -109,7 +109,7 @@ bg-slate-950/80 p-4">
                     Endpoint /health e /metrics/update raggiungibili.
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    Analisi metriche demo attive.
+                    Analisi metriche preview attive.
                   </p>
                 </div>
                 <div className="inline-flex items-center gap-2 

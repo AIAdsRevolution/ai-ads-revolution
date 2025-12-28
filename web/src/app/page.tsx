@@ -241,7 +241,7 @@ export default function HomePage() {
               </div>
 
               <p className="mt-3 text-[11px] text-slate-500">
-                Performance demo ultimi 28 giorni · In arrivo: integrazione Stripe · App iOS / Android ·
+                Performance preview ultimi 28 giorni · In arrivo: integrazione Stripe · App iOS / Android ·
                 Multilingua globale
               </p>
             </div>

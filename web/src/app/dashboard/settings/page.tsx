@@ -50,7 +50,7 @@ export default function SettingsPage() {
                   Nome account
                 </p>
                 <p className="font-medium">
-                  Account demo AI Ads Revolution
+                  Account preview AI Ads Revolution
                 </p>
               </div>
               <div>
@@ -58,7 +58,7 @@ export default function SettingsPage() {
                   Stato
                 </p>
                 <p className="font-medium text-emerald-400">
-                  Attivo · Modalità beta
+                  Attivo · AI Learning
                 </p>
               </div>
               <div>
@@ -66,7 +66,7 @@ export default function SettingsPage() {
                   Email login
                 </p>
                 <p className="font-mono text-xs">
-                  demo@aiadsrevolution.com
+                  preview@aiadsrevolution.com
                 </p>
               </div>
               <div>
@@ -74,7 +74,7 @@ export default function SettingsPage() {
                   ID inserzionista
                 </p>
                 <p className="font-mono text-xs">
-                  AAR-ACC-001-DEMO
+                  AAR-ACC-001-preview
                 </p>
               </div>
             </div>
@@ -238,7 +238,7 @@ export default function SettingsPage() {
                   </p>
                 </div>
                 <button className="text-xs rounded-full border border-slate-700 px-3 py-1 hover:bg-slate-800">
-                  Disconnetti tutte le sessioni (demo)
+                  Disconnetti tutte le sessioni 
                 </button>
               </div>
             </div>
@@ -265,15 +265,15 @@ export default function SettingsPage() {
                   </p>
                 </div>
                 <span className="inline-flex items-center rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300">
-                  Coming soon
+                  Attivazione progressiva
                 </span>
               </div>
               <div>
                 <p className="text-slate-400 text-xs mb-1">
-                  Chiave pubblica progetto (demo)
+                  Chiave pubblica progetto 
                 </p>
                 <p className="font-mono text-[11px] text-slate-300 break-all">
-                  AAR-PUB-KEY-DEMO-1234-5678-ABCD-EFGH
+                  AAR-PUB-KEY-preview-1234-5678-ABCD-EFGH
                 </p>
               </div>
               <p className="text-[11px] text-slate-500">

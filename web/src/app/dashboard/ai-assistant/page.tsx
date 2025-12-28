@@ -116,7 +116,7 @@ export default function AiAssistantPage() {
 
     if (!snap) {
       replyText =
-        'Al momento non vedo ancora dati in campaign_metrics. Puoi lasciare il simulatore AI attivo qualche minuto o inserire metriche demo, poi ricalcolerò CTR, CPC e ROAS per consigliarti meglio.'
+        'Al momento non vedo ancora dati in campaign_metrics. Puoi lasciare il simulatore AI attivo qualche minuto o inserire metriche preview, poi ricalcolerò CTR, CPC e ROAS per consigliarti meglio.'
     } else {
       const { roas, ctr, cpc, cost, revenue } = snap
       replyText =

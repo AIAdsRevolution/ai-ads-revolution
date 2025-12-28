@@ -49,7 +49,7 @@ export default function ComeFunzionaPage() {
       items: [
         "Dashboard inserzionista attiva",
         "Autenticazione con email + conferma",
-        "Creazione campagne demo",
+        "Creazione campagne preview",
         "AI copywriter integrato per annunci sponsorizzati",
       ],
     },

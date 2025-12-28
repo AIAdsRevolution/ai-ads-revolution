@@ -21,7 +21,7 @@ export default function CreativesPage() {
     if (!product.trim()) return
     setLoading(true)
 
-    // Demo: generiamo creatività finte in locale.
+    // preview: generiamo creatività finte in locale.
     const baseId = Date.now()
     const newIdeas: CreativeIdea[] = [
       {

@@ -7,7 +7,7 @@ function randomBetween(min: number, max: number) {
 
 export async function POST() {
   // Simula update di una campagna AI
-  const campaigns = ['CAMP-DEMO-1', 'CAMP-DEMO-2', 'CAMP-DEMO-3']
+  const campaigns = ['CAMP-preview-1', 'CAMP-preview-2', 'CAMP-preview-3']
 
   const campaign_id =
     campaigns[Math.floor(Math.random() * campaigns.length)]
