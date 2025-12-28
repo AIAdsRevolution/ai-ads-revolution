@@ -52,7 +52,6 @@ export default function CampaignsPage() {
   const [status, setStatus] = useState<"ALL" | "ENABLED" | "PAUSED">("ALL");
   const [channel, setChannel] = useState<"ALL" | CampaignRow["channel"]>("ALL");
 
-  // Placeholder: in futuro verrà da Supabase / AI-Core
   const rows: CampaignRow[] = useMemo(() => [], []);
 
   const filtered = useMemo(() => {
@@ -194,13 +193,13 @@ export default function CampaignsPage() {
                         {r.status === "ENABLED" ? "Attiva" : "In pausa"}
                       </span>
                     </Td>
-                    <Td className="px-3 py-2 text-sm text-slate-200">{r.channel}</Td>
-                    <Td className="px-3 py-2 text-sm text-slate-200 tabular-nums">€ {r.budgetDaily.toFixed(2)}</Td>
-                    <Td className="px-3 py-2 text-sm text-slate-200 tabular-nums">{r.impressions.toLocaleString("it-IT")}</Td>
-                    <Td className="px-3 py-2 text-sm text-slate-200 tabular-nums">{r.clicks.toLocaleString("it-IT")}</Td>
-                    <Td className="px-3 py-2 text-sm text-slate-200 tabular-nums">{r.ctr.toFixed(2)}%</Td>
-                    <Td className="px-3 py-2 text-sm text-slate-200 tabular-nums">€ {r.spend.toFixed(2)}</Td>
-                    <Td className="px-3 py-2 text-sm text-slate-200 tabular-nums">{r.roas.toFixed(2)}x</Td>
+                    <Td>{r.channel}</Td>
+                    <Td className="tabular-nums">€ {r.budgetDaily.toFixed(2)}</Td>
+                    <Td className="tabular-nums">{r.impressions.toLocaleString("it-IT")}</Td>
+                    <Td className="tabular-nums">{r.clicks.toLocaleString("it-IT")}</Td>
+                    <Td className="tabular-nums">{r.ctr.toFixed(2)}%</Td>
+                    <Td className="tabular-nums">€ {r.spend.toFixed(2)}</Td>
+                    <Td className="tabular-nums">{r.roas.toFixed(2)}x</Td>
                   </tr>
                 ))}
               </tbody>
