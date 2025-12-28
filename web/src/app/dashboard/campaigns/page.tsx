@@ -1,240 +1,217 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from "react";
+import Link from "next/link";
 
-type Campaign = {
-  id: number
-  name: string
-  channel: string
-  objective: string
-  daily_budget_eur: number
-  status: string
-  created_at: string
+type CampaignRow = {
+  id: string;
+  name: string;
+  status: "ENABLED" | "PAUSED";
+  channel: "Search" | "Performance Max" | "Display";
+  budgetDaily: number;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  spend: number;
+  roas: number;
+};
+
+function Pill({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-full border border-slate-800 bg-slate-900/40 px-3 py-1 text-[11px] font-semibold text-slate-300">
+      {children}
+    </span>
+  );
+}
+
+function Button({
+  children,
+  href,
+  variant = "primary",
+}: {
+  children: React.ReactNode;
+  href?: string;
+  variant?: "primary" | "secondary";
+}) {
+  const cls =
+    variant === "primary"
+      ? "rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs font-semibold text-slate-100 hover:bg-slate-900"
+      : "rounded-xl border border-slate-800 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-900/40";
+  return href ? <Link className={cls} href={href}>{children}</Link> : <button className={cls}>{children}</button>;
+}
+
+function Th({ children }: { children: React.ReactNode }) {
+  return <th className="px-3 py-2 text-left text-[11px] font-semibold text-slate-400">{children}</th>;
+}
+function Td({ children }: { children: React.ReactNode }) {
+  return <td className="px-3 py-2 text-sm text-slate-200">{children}</td>;
 }
 
 export default function CampaignsPage() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [loading, setLoading] = useState(true)
-  const [form, setForm] = useState({
-    name: '',
-    channel: 'Meta',
-    objective: 'vendite',
-    daily_budget_eur: '10',
-  })
-  const [creating, setCreating] = useState(false)
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState<"ALL" | "ENABLED" | "PAUSED">("ALL");
+  const [channel, setChannel] = useState<"ALL" | CampaignRow["channel"]>("ALL");
 
-  async function loadCampaigns() {
-    try {
-      const res = await fetch('/api/campaigns')
-      const json = await res.json()
-      if (!res.ok) {
-        console.error('Errore API campaigns:', json)
-        return
-      }
-      setCampaigns(json.campaigns ?? [])
-    } catch (err) {
-      console.error('Errore fetch campaigns:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Placeholder: in futuro verrà da Supabase / AI-Core
+  const rows: CampaignRow[] = useMemo(() => [], []);
 
-  useEffect(() => {
-    loadCampaigns()
-  }, [])
+  const filtered = useMemo(() => {
+    const qq = q.trim().toLowerCase();
+    return rows.filter((r) => {
+      if (status !== "ALL" && r.status !== status) return false;
+      if (channel !== "ALL" && r.channel !== channel) return false;
+      if (qq && !(r.name.toLowerCase().includes(qq) || r.id.toLowerCase().includes(qq))) return false;
+      return true;
+    });
+  }, [rows, q, status, channel]);
 
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault()
-    setCreating(true)
-    try {
-      const res = await fetch('/api/campaigns', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-      const json = await res.json()
-      if (!res.ok || !json.ok) {
-        console.error('Errore creazione campagna:', json)
-        return
-      }
-      setForm({
-        name: '',
-        channel: 'Meta',
-        objective: 'vendite',
-        daily_budget_eur: '10',
-      })
-      await loadCampaigns()
-    } catch (err) {
-      console.error('Errore POST campaigns:', err)
-    } finally {
-      setCreating(false)
-    }
-  }
+  const totals = useMemo(() => {
+    const imp = filtered.reduce((a, r) => a + r.impressions, 0);
+    const clk = filtered.reduce((a, r) => a + r.clicks, 0);
+    const spend = filtered.reduce((a, r) => a + r.spend, 0);
+    const ctr = imp > 0 ? (clk / imp) * 100 : 0;
+    const roas = filtered.length ? filtered.reduce((a, r) => a + r.roas, 0) / filtered.length : 0;
+    return { imp, clk, spend, ctr, roas };
+  }, [filtered]);
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="max-w-6xl mx-auto px-4 py-8 pb-24">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold">
-              Campagne AI
-            </h1>
-            <p className="text-sm text-slate-400">
-              Gestisci le tue campagne AI Ads Revolution.
-            </p>
-          </div>
+    <div className="p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-xl font-semibold text-slate-100">Campagne</div>
+          <div className="mt-1 text-sm text-slate-500">Gestisci campagne, filtri e performance in stile Google Ads.</div>
         </div>
-
-        {/* Form nuova campagna */}
-        <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 mb-8">
-          <h2 className="text-sm font-semibold mb-4">
-            Crea nuova campagna AI
-          </h2>
-          <form
-            onSubmit={handleCreate}
-            className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
-          >
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">
-                Nome campagna
-              </label>
-              <input
-                className="w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2 text-sm"
-                value={form.name}
-                onChange={(e) =>
-                  setForm({ ...form, name: e.target.value })
-                }
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">
-                Canale
-              </label>
-              <select
-                className="w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2 text-sm"
-                value={form.channel}
-                onChange={(e) =>
-                  setForm({ ...form, channel: e.target.value })
-                }
-              >
-                <option>Meta</option>
-                <option>Google</option>
-                <option>TikTok</option>
-                <option>Native</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">
-                Obiettivo
-              </label>
-              <select
-                className="w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2 text-sm"
-                value={form.objective}
-                onChange={(e) =>
-                  setForm({ ...form, objective: e.target.value })
-                }
-              >
-                <option value="vendite">Vendite</option>
-                <option value="lead">Lead</option>
-                <option value="traffico">Traffico</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">
-                Budget giornaliero (€)
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.5"
-                className="w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2 text-sm"
-                value={form.daily_budget_eur}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    daily_budget_eur: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="md:col-span-4 flex justify-end">
-              <button
-                type="submit"
-                disabled={creating}
-                className="inline-flex items-center rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-emerald-400 disabled:opacity-60"
-              >
-                {creating ? 'Creazione…' : 'Crea campagna'}
-              </button>
-            </div>
-          </form>
-        </section>
-
-        {/* Lista campagne */}
-        <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-          <h2 className="text-sm font-semibold mb-4">
-            Campagne attive
-          </h2>
-          {loading ? (
-            <p className="text-sm text-slate-500">
-              Caricamento campagne…
-            </p>
-          ) : campaigns.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              Nessuna campagna ancora creata.
-            </p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead className="text-xs uppercase text-slate-400 border-b border-slate-800">
-                  <tr>
-                    <th className="py-2 pr-4 text-left">Nome</th>
-                    <th className="py-2 px-4 text-left">Canale</th>
-                    <th className="py-2 px-4 text-left">Obiettivo</th>
-                    <th className="py-2 px-4 text-right">
-                      Budget giornaliero
-                    </th>
-                    <th className="py-2 px-4 text-left">Stato</th>
-                    <th className="py-2 pl-4 text-right">Creata il</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {campaigns.map((c) => (
-                    <tr
-                      key={c.id}
-                      className="border-b border-slate-900/60"
-                    >
-                      <td className="py-2 pr-4">{c.name}</td>
-                      <td className="py-2 px-4">{c.channel}</td>
-                      <td className="py-2 px-4">
-                        {c.objective}
-                      </td>
-                      <td className="py-2 px-4 text-right">
-                        € {Number(c.daily_budget_eur).toFixed(2)}
-                      </td>
-                      <td className="py-2 px-4">{c.status}</td>
-                      <td className="py-2 pl-4 text-right text-slate-400">
-                        {new Date(
-                          c.created_at
-                        ).toLocaleString('it-IT')}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+        <div className="flex items-center gap-2">
+          <Button href="/dashboard">Overview</Button>
+          <Button href="/dashboard/settings" variant="secondary">Impostazioni</Button>
+          <Button href="/dashboard/campaigns/new">+ Crea campagna</Button>
+        </div>
       </div>
 
-      {/* Pulsante chatbot flottante */}
-      <a
-        href="/ai-chatbot"
-        className="fixed bottom-6 right-6 inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 shadow-lg hover:bg-emerald-400"
-      >
-        <span className="h-2 w-2 rounded-full bg-slate-950" />
-        AI Chatbot
-      </a>
-    </main>
-  )
+      <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Cerca per nome o ID campagna"
+            className="w-full sm:w-80 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-700"
+          />
+          <div className="flex items-center gap-2">
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as any)}
+              className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-200 focus:outline-none"
+            >
+              <option value="ALL">Stato: Tutti</option>
+              <option value="ENABLED">Stato: Attive</option>
+              <option value="PAUSED">Stato: In pausa</option>
+            </select>
+            <select
+              value={channel}
+              onChange={(e) => setChannel(e.target.value as any)}
+              className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-200 focus:outline-none"
+            >
+              <option value="ALL">Canale: Tutti</option>
+              <option value="Search">Search</option>
+              <option value="Performance Max">Performance Max</option>
+              <option value="Display">Display</option>
+            </select>
+          </div>
+
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Pill>Impr: {totals.imp.toLocaleString("it-IT")}</Pill>
+            <Pill>Click: {totals.clk.toLocaleString("it-IT")}</Pill>
+            <Pill>CTR: {totals.ctr.toFixed(2)}%</Pill>
+            <Pill>Spesa: € {totals.spend.toFixed(2)}</Pill>
+            <Pill>ROAS: {totals.roas.toFixed(2)}x</Pill>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/60 overflow-hidden">
+        <div className="border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+          <div className="text-sm font-semibold text-slate-200">Elenco campagne</div>
+          <div className="text-xs text-slate-500">Ultimi 28 giorni · Realtime (quando collegato)</div>
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="p-6">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-6">
+              <div className="text-base font-semibold text-slate-100">Nessuna campagna trovata</div>
+              <div className="mt-2 text-sm text-slate-500">
+                Collega un account Ads oppure crea una campagna per iniziare. Quando arrivano i primi dati,
+                la tabella mostrerà performance e insight AI.
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button href="/dashboard/campaigns/new">+ Crea campagna</Button>
+                <Button href="/dashboard/settings" variant="secondary">Collega account Ads</Button>
+              </div>
+              <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                  <div className="text-xs font-semibold text-slate-300">Suggerimento AI</div>
+                  <div className="mt-1 text-sm text-slate-500">Imposta un obiettivo (vendite/lead) e lascia AI Learning calibrare la baseline.</div>
+                </div>
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                  <div className="text-xs font-semibold text-slate-300">Qualità dati</div>
+                  <div className="mt-1 text-sm text-slate-500">Dopo 48–72h di dati, il sistema può iniziare ottimizzazioni graduali.</div>
+                </div>
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                  <div className="text-xs font-semibold text-slate-300">Trasparenza</div>
+                  <div className="mt-1 text-sm text-slate-500">Ogni decisione AI sarà tracciata in “Registro decisioni”.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-[1100px] w-full">
+              <thead className="bg-slate-950">
+                <tr className="border-b border-slate-800">
+                  <Th>Nome</Th>
+                  <Th>Stato</Th>
+                  <Th>Canale</Th>
+                  <Th>Budget/dì</Th>
+                  <Th>Impr</Th>
+                  <Th>Click</Th>
+                  <Th>CTR</Th>
+                  <Th>Spesa</Th>
+                  <Th>ROAS</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((r) => (
+                  <tr key={r.id} className="border-b border-slate-900 hover:bg-slate-900/30">
+                    <Td>
+                      <div className="font-semibold text-slate-100">{r.name}</div>
+                      <div className="text-xs text-slate-500">{r.id}</div>
+                    </Td>
+                    <Td>
+                      <span className={`rounded-full px-2 py-1 text-[11px] font-semibold border ${
+                        r.status === "ENABLED"
+                          ? "border-emerald-900/60 bg-emerald-950/30 text-emerald-200"
+                          : "border-slate-800 bg-slate-950 text-slate-300"
+                      }`}>
+                        {r.status === "ENABLED" ? "Attiva" : "In pausa"}
+                      </span>
+                    </Td>
+                    <Td className="px-3 py-2 text-sm text-slate-200">{r.channel}</Td>
+                    <Td className="px-3 py-2 text-sm text-slate-200 tabular-nums">€ {r.budgetDaily.toFixed(2)}</Td>
+                    <Td className="px-3 py-2 text-sm text-slate-200 tabular-nums">{r.impressions.toLocaleString("it-IT")}</Td>
+                    <Td className="px-3 py-2 text-sm text-slate-200 tabular-nums">{r.clicks.toLocaleString("it-IT")}</Td>
+                    <Td className="px-3 py-2 text-sm text-slate-200 tabular-nums">{r.ctr.toFixed(2)}%</Td>
+                    <Td className="px-3 py-2 text-sm text-slate-200 tabular-nums">€ {r.spend.toFixed(2)}</Td>
+                    <Td className="px-3 py-2 text-sm text-slate-200 tabular-nums">{r.roas.toFixed(2)}x</Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 text-xs text-slate-600">
+        Nota: in questa fase, i dati sono mostrati quando colleghi un account Ads o quando AI-Core scrive su Supabase.
+      </div>
+    </div>
+  );
 }
