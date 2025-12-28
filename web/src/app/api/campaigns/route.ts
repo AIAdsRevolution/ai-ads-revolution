@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-
 export async function GET() {
+  // In questa fase: endpoint stabile per UI. Quando colleghiamo Supabase/Google Ads,
+  // questo endpoint verrà alimentato con dati reali.
   return NextResponse.json({
     ok: true,
     campaigns: [],
