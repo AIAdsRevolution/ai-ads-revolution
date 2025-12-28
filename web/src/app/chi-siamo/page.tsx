@@ -82,7 +82,7 @@ export default function ChiSiamoPage() {
 
           <section>
             <h2 className="text-lg font-semibold text-emerald-300">
-              Fase Beta e prossimi passi
+              Enterprise Preview e prossimi passi
             </h2>
             <p className="mt-3 text-slate-300">
               Attualmente AI Ads Revolution è in fase{" "}

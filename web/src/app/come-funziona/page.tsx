@@ -45,7 +45,7 @@ export default function ComeFunzionaPage() {
 
   const roadmap = [
     {
-      phase: "Oggi (Beta)",
+      phase: "Oggi (Enterprise Preview)",
       items: [
         "Dashboard inserzionista attiva",
         "Autenticazione con email + conferma",

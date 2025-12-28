@@ -326,7 +326,7 @@ export default function DashboardInserzionistaPage() {
             </div>
             <div>
               <p className="text-slate-400 mb-1">Modalità</p>
-              <p className="text-sm font-semibold">Beta live</p>
+              <p className="text-sm font-semibold">AI Learning</p>
               <p className="text-slate-500 mt-1">
                 Ottimizzazione continua
               </p>
