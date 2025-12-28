@@ -2,10 +2,13 @@ import os
 from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
+from app.routes.google_ads import router as google_ads_router
 
 # Inizializza FastAPI
 app = FastAPI()
 
+
+app.include_router(google_ads_router)
 # Client OpenAI - prende la chiave da OPENAI_API_KEY (Render + locale)
 client = OpenAI()
 

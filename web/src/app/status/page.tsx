@@ -58,7 +58,7 @@ border border-emerald-500/60 bg-emerald-500/10 px-3 py-1 text-[11px]
 font-medium text-emerald-200">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 
 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
-                Uptime demo · Beta
+                Uptime demo
               </span>
             </div>
           </div>

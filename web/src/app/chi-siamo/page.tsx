@@ -86,7 +86,7 @@ export default function ChiSiamoPage() {
             </h2>
             <p className="mt-3 text-slate-300">
               Attualmente AI Ads Revolution è in fase{" "}
-              <span className="font-semibold text-emerald-300">Beta</span>: la piattaforma
+              <span className="font-semibold text-emerald-300"></span>: la piattaforma
               è già utilizzabile, ma continuerà a migliorare con aggiornamenti frequenti,
               nuove funzionalità e ottimizzazioni del motore AI.
             </p>

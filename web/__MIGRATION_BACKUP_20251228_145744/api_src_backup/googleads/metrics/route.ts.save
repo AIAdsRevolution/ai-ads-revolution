@@ -1,0 +1,131 @@
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  const {
+    GOOGLE_ADS_CLIENT_ID,
+    GOOGLE_ADS_CLIENT_SECRET,
+    GOOGLE_ADS_DEVELOPER_TOKEN,
+    GOOGLE_ADS_CUSTOMER_ID,
+    GOOGLE_ADS_REFRESH_TOKEN,
+  } = process.env;
+
+  if (
+    !GOOGLE_ADS_CLIENT_ID ||
+    !GOOGLE_ADS_CLIENT_SECRET ||
+    !GOOGLE_ADS_DEVELOPER_TOKEN ||
+    !GOOGLE_ADS_CUSTOMER_ID ||
+    !GOOGLE_ADS_REFRESH_TOKEN
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Missing Google Ads env vars",
+        missing: {
+          GOOGLE_ADS_CLIENT_ID: !GOOGLE_ADS_CLIENT_ID,
+          GOOGLE_ADS_CLIENT_SECRET: !GOOGLE_ADS_CLIENT_SECRET,
+          GOOGLE_ADS_DEVELOPER_TOKEN: !GOOGLE_ADS_DEVELOPER_TOKEN,
+          GOOGLE_ADS_CUSTOMER_ID: !GOOGLE_ADS_CUSTOMER_ID,
+          GOOGLE_ADS_REFRESH_TOKEN: !GOOGLE_ADS_REFRESH_TOKEN,
+
+        },
+      },
+      { status: 500 }
+    );
+  }
+
+  // 1) Scambia refresh_token -> access_token
+  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: GOOGLE_ADS_CLIENT_ID,
+      client_secret: GOOGLE_ADS_CLIENT_SECRET,
+      refresh_token: GOOGLE_ADS_REFRESH_TOKEN,
+      grant_type: "refresh_token",
+    }),
+  });
+
+  const tokenJson: any = await tokenRes.json();
+  if (!tokenRes.ok) {
+    return NextResponse.json(
+      { ok: false, step: "oauth_token", tokenJson },
+      { status: 500 }
+    );
+  }
+
+  const accessToken = tokenJson.access_token as string;
+
+  // 2) Query base Google Ads (campagne ultimi 28 giorni)
+  const gaql = `
+    SELECT
+      campaign.id,
+      campaign.name,
+      campaign.status,
+      metrics.impressions,
+      metrics.clicks,
+      metrics.cost_micros
+    FROM campaign
+    WHERE segments.date DURING LAST_28_DAYS
+    LIMIT 50
+  `.trim();
+
+  const apiUrl = 
+`https://googleads.googleapis.com/v18/customers/${GOOGLE_ADS_CUSTOMER_ID}/googleAds:searchStream`;
+
+  const adsRes = await fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "developer-token": GOOGLE_ADS_DEVELOPER_TOKEN,
+      "login-customer-id": GOOGLE_ADS_CUSTOMER_ID, // ok anche se non MCC; 
+se ti dà errore lo togliamo
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query: gaql }),
+  });
+
+  const adsText = await adsRes.text();
+
+  if (!adsRes.ok) {
+    return NextResponse.json(
+      { ok: false, step: "googleads_api", status: adsRes.status, body: 
+adsText },
+      { status: 500 }
+    );
+  }
+
+  // searchStream ritorna array JSON in testo
+  let parsed: any;
+  try {
+    parsed = JSON.parse(adsText);
+  } catch {
+    parsed = adsText;
+  }
+
+  // Normalizza output
+  const rows =
+    Array.isArray(parsed)
+      ? parsed.flatMap((chunk) => chunk.results ?? [])
+      : [];
+
+  const campaigns = rows.map((r: any) => {
+    const costMicros = Number(r.metrics?.costMicros ?? 0);
+    return {
+      id: r.campaign?.id,
+      name: r.campaign?.name,
+      status: r.campaign?.status,
+      impressions: Number(r.metrics?.impressions ?? 0),
+      clicks: Number(r.metrics?.clicks ?? 0),
+      costEUR: costMicros / 1_000_000,
+    };
+  });
+
+  return NextResponse.json({
+    ok: true,
+    source: "googleads",
+    customerId: GOOGLE_ADS_CUSTOMER_ID,
+    campaignsCount: campaigns.length,
+    campaigns,
+  });
+}
+

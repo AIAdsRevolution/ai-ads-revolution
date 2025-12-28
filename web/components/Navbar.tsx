@@ -26,7 +26,7 @@ text-emerald-400/80">
             </span>
             <span className="text-[11px] text-slate-400">
               Motore neurale di advertising ·{" "}
-              <span className="text-emerald-300">Beta</span>
+              <span className="text-emerald-300"></span>
             </span>
           </div>
         </div>

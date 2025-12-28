@@ -84,7 +84,7 @@ export default function HomePage() {
                 AI Ads Revolution
               </span>
               <span className="text-[11px] text-slate-400">
-                Motore neurale di advertising • <span className="text-emerald-300">Beta</span>
+                Motore neurale di advertising • <span className="text-emerald-300"></span>
               </span>
             </div>
           </div>

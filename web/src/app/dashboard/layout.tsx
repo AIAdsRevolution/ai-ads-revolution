@@ -60,9 +60,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="text-xs font-semibold text-slate-200">
             Pannello inserzionista
           </div>
-          <div className="flex items-center gap-3 text-[11px] text-slate-400">
-            <span className="hidden sm:inline text-slate-500">Logged in</span>
-            <Link
+          <div className="flex items-center gap-3 text-[11px] text-slate-400"><Link
               href="/auth/login"
               className="rounded-lg border border-slate-700 px-2.5 py-1 hover:bg-slate-900 text-xs"
             >

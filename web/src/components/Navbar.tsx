@@ -17,7 +17,7 @@ export function Navbar() {
           <span className="text-xs uppercase tracking-[0.26em] text-emerald-400/80">
             AI Ads Revolution
           </span>
-          <span className="text-[11px] text-slate-400">Motore neurale di advertising · Beta</span>
+          <span className="text-[11px] text-slate-400">Motore neurale di advertising</span>
         </div>
       </Link>
 
