@@ -1,0 +1,10 @@
+{
+  "nav": { "pricing": "Pricing", "dashboard": "Dashboard", "login": "Sign in" },
+  "home": {
+    "title": "AI Ads Revolution",
+    "subtitle": "The AI platform to create, optimize, and scale real campaigns.",
+    "cta": "Get started"
+  },
+  "chat": { "title": "AI Assistant", "placeholder": "Type here…", "send": "Send" },
+  "footer": { "rights": "All rights reserved." }
+}

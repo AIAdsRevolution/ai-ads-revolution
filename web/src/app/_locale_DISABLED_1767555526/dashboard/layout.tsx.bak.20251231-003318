@@ -1,0 +1,16 @@
+import Sidebar from "@/components/dashboard-meta/Sidebar";
+import Topbar from "@/components/dashboard-meta/Topbar";
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-main)" }}>
+      <Sidebar />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <Topbar />
+        <div style={{ padding: 16 }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -24,8 +24,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Missing Supabase env vars", missing }, { status: 500 });
   }
   try {
-    const body = await req.json();
-    const planId = body?.planId;
+    let body:any = {};
+    try {
+      const raw = await req.text();
+      body = raw ? JSON.parse(raw) : {};
+    } catch {
+      body = {};
+    }
+    const planId = body?.planId || body?.plan;
 
     console.log("[CHECKOUT] Request body:", body);
 
