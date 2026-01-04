@@ -9,6 +9,7 @@ function ymd(d: Date) {
 }
 
 export async function GET(req: Request) {
+  
   const {
     GOOGLE_ADS_CLIENT_ID,
     GOOGLE_ADS_CLIENT_SECRET,
@@ -17,6 +18,8 @@ export async function GET(req: Request) {
     GOOGLE_ADS_REFRESH_TOKEN,
     GOOGLE_ADS_LOGIN_CUSTOMER_ID,
   } = process.env;
+  let accessToken = "";
+  
 
   if (
     !GOOGLE_ADS_CLIENT_ID ||
@@ -53,7 +56,7 @@ export async function GET(req: Request) {
   // 1) refresh_token -> access_token
   const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       client_id: GOOGLE_ADS_CLIENT_ID,
       client_secret: GOOGLE_ADS_CLIENT_SECRET,
@@ -69,7 +72,7 @@ export async function GET(req: Request) {
       { status: 500 }
     );
   }
-  const accessToken = tokenJson.access_token as string;
+  accessToken = tokenJson.access_token as string;
 
   const CUSTOMER_ID = String(GOOGLE_ADS_CUSTOMER_ID).replace(/-/g, "");
   const LOGIN_CUSTOMER_ID = (GOOGLE_ADS_LOGIN_CUSTOMER_ID || "").replace(/-/g, "");
@@ -79,12 +82,12 @@ export async function GET(req: Request) {
   async function gaql(query: string) {
     const r = await fetch(apiUrl, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "developer-token": GOOGLE_ADS_DEVELOPER_TOKEN,
+      headers: (new Headers({
+Authorization: `Bearer ${accessToken}`,
+        "developer-token": String(GOOGLE_ADS_DEVELOPER_TOKEN ?? ""),
         ...(LOGIN_CUSTOMER_ID ? { "login-customer-id": LOGIN_CUSTOMER_ID } : {}),
         "Content-Type": "application/json",
-      },
+      }) as any),
       body: JSON.stringify({ query }),
     });
 

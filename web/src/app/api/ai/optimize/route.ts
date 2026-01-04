@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     });
 
     if (!res.ok) {
-      throw new Error(`AI core error: ${res.status}`);
+    return NextResponse.json({ ok: false, error: `AI core error: ${res.status}` }, { status: 500 });
     }
 
     const data = await res.json();

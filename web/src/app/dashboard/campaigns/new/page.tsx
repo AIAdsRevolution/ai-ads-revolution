@@ -1,5 +1,6 @@
 "use client";
 
+import { AAR_EVENTS } from "@/lib/aarEvents";
 import Link from "next/link";
 
 function Step({ n, title, desc }: { n: string; title: string; desc: string }) {

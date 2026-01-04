@@ -1,0 +1,14 @@
+ M src/app/dashboard/layout.tsx
+ M src/app/globals.css
+ M src/app/layout.tsx
+?? APPLY_PRO_UI_V1.sh
+?? public/aiads-logo.svg
+?? public/favicon.svg
+?? src/app/api/chat/
+?? src/app/dashboard/layout.tsx.bak.20260101-023618
+?? src/app/dashboard/layout.tsx.bak.20260101-103810
+?? src/app/globals.css.bak.20260101-023618
+?? src/app/globals.css.bak.20260101-103810
+?? src/app/layout.tsx.bak.20260101-023618
+?? src/app/layout.tsx.bak.20260101-103810
+?? src/components/ChatWidget.tsx

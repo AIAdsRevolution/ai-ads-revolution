@@ -1,5 +1,6 @@
 "use client";
 
+import { AAR_EVENTS } from "@/lib/aarEvents";
 import React, { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";

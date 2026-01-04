@@ -20,6 +20,18 @@ const supabase =
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+
+  // Runtime env guard (do not fail build)
+  const required = [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "STRIPE_SECRET_KEY",
+  ];
+  const missing = required.filter((k) => !process.env[k]);
+  // Stripe price id can be optional in some routes; keep as soft-check via message
+  if (missing.includes("NEXT_PUBLIC_SUPABASE_URL") || missing.includes("NEXT_PUBLIC_SUPABASE_ANON_KEY")) {
+    return NextResponse.json({ ok: false, error: "Missing Supabase env vars", missing }, { status: 500 });
+  }
   try {
     if (!supabase) {
       return NextResponse.json(

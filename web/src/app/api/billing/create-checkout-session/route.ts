@@ -5,12 +5,24 @@ import { plans } from "../plans";
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
 if (!stripeSecretKey) {
-  console.error("[STRIPE] STRIPE_SECRET_KEY mancante nelle env");
+// build-safe:   console.error("[STRIPE] STRIPE_SECRET_KEY mancante nelle env");
 }
 
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
 
 export async function POST(req: Request) {
+
+  // Runtime env guard (do not fail build)
+  const required = [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "STRIPE_SECRET_KEY",
+  ];
+  const missing = required.filter((k) => !process.env[k]);
+  // Stripe price id can be optional in some routes; keep as soft-check via message
+  if (missing.includes("NEXT_PUBLIC_SUPABASE_URL") || missing.includes("NEXT_PUBLIC_SUPABASE_ANON_KEY")) {
+    return NextResponse.json({ ok: false, error: "Missing Supabase env vars", missing }, { status: 500 });
+  }
   try {
     const body = await req.json();
     const planId = body?.planId;

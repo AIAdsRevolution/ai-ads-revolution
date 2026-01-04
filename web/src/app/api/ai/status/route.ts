@@ -17,7 +17,7 @@ export async function GET(req: Request) {
       .gte("date", since)
       .order("date", { ascending: true });
 
-    if (error) throw new Error(error.message);
+    if (error) return NextResponse.json({ ok:false, error: error.message }, { status: 500 });
 
     const rows = data?.length ?? 0;
     const sum = (data || []).reduce(

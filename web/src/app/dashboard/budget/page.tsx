@@ -35,7 +35,9 @@ export default function BudgetPage() {
   }
 
   useEffect(() => {
-    loadMetrics()
+    
+    AAR_EVENTS.budget_view();
+loadMetrics()
   }, [])
 
   const totals = useMemo(

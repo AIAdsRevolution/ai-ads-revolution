@@ -1,153 +1,83 @@
 import { NextResponse } from "next/server";
 
-type AdEvent = {
-  id?: string;
-  event_type: "impression" | "click" | "conversion" | "spend" | string;
-  campaign_id?: string | null;
-  value?: number | null;
-  created_at?: string;
+type AdEventRow = {
+  event_type: string;
+  value: number | null;
 };
 
-const getEnv = () => {
+function requireSupabaseEnv() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !anon) {
-    throw new Error("Variabili ambiente Supabase mancanti (URL/ANON).");
+    return { ok: false as const, missing: {
+      NEXT_PUBLIC_SUPABASE_URL: !supabaseUrl,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: !anon
+    }};
   }
+  return { ok: true as const, supabaseUrl, anon };
+}
 
-  return { supabaseUrl, anon };
-};
-
-// GET: aggrega impression, click, conversion, spend
 export async function GET() {
   try {
-    const { supabaseUrl, anon } = getEnv();
-
-    const res = await fetch(
-      `${supabaseUrl}/rest/v1/ad_events?select=event_type,value`,
-      {
-        method: "GET",
-        headers: {
-          apikey: anon,
-          Authorization: `Bearer ${anon}`,
-        },
-        cache: "no-store",
-      }
-    );
-
-    const text = await res.text();
-
-    if (!res.ok) {
-      console.error("Errore Supabase GET ad_events:", text);
+    const env = requireSupabaseEnv();
+    if (!env.ok) {
       return NextResponse.json(
-        { error: "Impossibile leggere gli eventi.", details: text },
+        { ok: false, error: "Missing Supabase env vars", missing: env.missing },
         { status: 500 }
       );
     }
 
-    const data = JSON.parse(text) as AdEvent[];
+    const url = new URL(`${env.supabaseUrl}/rest/v1/ad_events`);
+    url.searchParams.set("select", "event_type,value");
+    url.searchParams.set("order", "created_at.desc");
+    url.searchParams.set("limit", "500"); // safe default
 
-    let impressions = 0;
-    let clicks = 0;
-    let conversions = 0;
-    let spend = 0;
-
-    for (const ev of data) {
-      const t = ev.event_type;
-      if (t === "impression") impressions++;
-      if (t === "click") clicks++;
-      if (t === "conversion") conversions++;
-      if (t === "spend" && typeof ev.value === "number") {
-        spend += ev.value;
-      }
-    }
-
-    return NextResponse.json(
-      {
-        impressions,
-        clicks,
-        conversions,
-        spend,
-        totalEvents: data.length,
-      },
-      { status: 200 }
-    );
-  } catch (err: any) {
-    console.error("Errore GET /api/events:", err);
-    return NextResponse.json(
-      {
-        error: "Errore imprevisto nel recupero eventi.",
-        details: String(err?.message ?? err),
-      },
-      { status: 500 }
-    );
-  }
-}
-
-// POST: registra un nuovo evento (impression/click/conversion/spend)
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const { type, campaignId, value } = body as {
-      type: AdEvent["event_type"];
-      campaignId?: string | null;
-      value?: number | null;
-    };
-
-    if (!type) {
-      return NextResponse.json(
-        {
-          error:
-            "Campo 'type' obbligatorio (impression/click/conversion/spend).",
-        },
-        { status: 400 }
-      );
-    }
-
-    const { supabaseUrl, anon } = getEnv();
-
-    const payload: AdEvent = {
-      event_type: type,
-      campaign_id: campaignId ?? null,
-      value: typeof value === "number" ? value : null,
-    };
-
-    const res = await fetch(`${supabaseUrl}/rest/v1/ad_events`, {
-      method: "POST",
+    const res = await fetch(url.toString(), {
+      method: "GET",
       headers: {
-        apikey: anon,
-        Authorization: `Bearer ${anon}`,
-        "Content-Type": "application/json",
-        Prefer: "return=minimal",
+        apikey: env.anon,
+        Authorization: `Bearer ${env.anon}`,
+        Accept: "application/json",
       },
-      body: JSON.stringify(payload),
+      cache: "no-store",
     });
 
     const text = await res.text();
-
     if (!res.ok) {
-      console.error("Errore Supabase POST ad_events:", text);
       return NextResponse.json(
-        {
-          error: "Impossibile registrare l'evento.",
-          details: text,
-        },
+        { ok: false, error: "Supabase request failed", status: res.status, body: text.slice(0, 2000) },
         { status: 500 }
       );
     }
 
+    let rows: AdEventRow[] = [];
+    try {
+      rows = JSON.parse(text) as AdEventRow[];
+    } catch {
+      return NextResponse.json(
+        { ok: false, error: "Invalid JSON from Supabase", body: text.slice(0, 2000) },
+        { status: 500 }
+      );
+    }
+
+    // Aggregate totals by event_type
+    const totals: Record<string, number> = {};
+    for (const r of rows) {
+      const k = String(r.event_type || "unknown");
+      const v = Number(r.value ?? 0);
+      totals[k] = (totals[k] ?? 0) + (Number.isFinite(v) ? v : 0);
+    }
+
+    return NextResponse.json({
+      ok: true,
+      count: rows.length,
+      totals,
+      rows,
+    });
+  } catch (e: any) {
     return NextResponse.json(
-      { success: true, message: "Evento registrato." },
-      { status: 200 }
-    );
-  } catch (err: any) {
-    console.error("Errore POST /api/events:", err);
-    return NextResponse.json(
-      {
-        error: "Errore imprevisto nella registrazione evento.",
-        details: String(err?.message ?? err),
-      },
+      { ok: false, error: String(e?.message || e) },
       { status: 500 }
     );
   }

@@ -1,5 +1,6 @@
 "use client";
 
+import { AAR_EVENTS } from "@/lib/aarEvents";
 import React, { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -44,7 +45,9 @@ export default function LoginPage() {
     }
 
     router.push("/dashboard");
-  }
+  
+        AAR_EVENTS.login_success();
+}
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">

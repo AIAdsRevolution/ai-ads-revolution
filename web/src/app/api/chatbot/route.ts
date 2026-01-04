@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     const { message } = await req.json();
 
     if (!process.env.OPENAI_API_KEY) {
-      console.error("[CHATBOT] OPENAI_API_KEY mancante!");
+// build-safe:       console.error("[CHATBOT] OPENAI_API_KEY mancante!");
       return NextResponse.json(
         { reply: "Errore configurazione AI (manca la chiave API)." },
         { status: 500 }

@@ -1,37 +1,40 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
-
-const stripeSecret = process.env.STRIPE_SECRET_KEY;
-const basicPriceIdEnv =
-  process.env.STRIPE_BASIC_PRICE_ID || process.env.STRIPE_PRICE_BASIC;
-
-if (!stripeSecret) {
-  console.error("❌ STRIPE_SECRET_KEY mancante nelle env");
-}
-if (!basicPriceIdEnv) {
-  console.error(
-    "❌ STRIPE_BASIC_PRICE_ID / STRIPE_PRICE_BASIC mancante nelle env"
-  );
-}
-
-const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
 
 export async function GET() {
   try {
-    if (!stripe || !basicPriceIdEnv) {
+    const priceId =
+      process.env.STRIPE_BASIC_PRICE_ID || process.env.STRIPE_PRICE_BASIC || "";
+
+    if (!priceId) {
       return NextResponse.json(
-        { error: "Stripe non configurato correttamente" },
+        { ok: false, error: "Missing STRIPE_BASIC_PRICE_ID (or STRIPE_PRICE_BASIC)" },
         { status: 500 }
       );
     }
 
-    const price = await stripe.prices.retrieve(basicPriceIdEnv);
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+      // build-safe / runtime-safe: return at least the priceId
+      return NextResponse.json({ ok: true, priceId, note: "STRIPE_SECRET_KEY not set; returning priceId only" });
+    }
 
-    return NextResponse.json(price);
-  } catch (error) {
-    console.error("❌ Errore nel recupero del prezzo Basic:", error);
+    const { default: Stripe } = await import("stripe");
+    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2024-06-20" as any });
+
+    const price = await stripe.prices.retrieve(priceId);
+
+    return NextResponse.json({
+      ok: true,
+      priceId,
+      currency: price.currency,
+      unit_amount: price.unit_amount,
+      recurring: price.recurring ?? null,
+      active: price.active,
+      product: price.product,
+    });
+  } catch (e: any) {
     return NextResponse.json(
-      { error: "Errore nel recupero del prezzo Basic" },
+      { ok: false, error: String(e?.message || e) },
       { status: 500 }
     );
   }

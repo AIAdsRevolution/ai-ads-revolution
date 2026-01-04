@@ -1,0 +1,43 @@
+ M components/home-v4/Hero.tsx
+ M src/app/dashboard/campaigns/page.tsx
+ M src/app/dashboard/layout.tsx
+ M src/app/dashboard/page.tsx
+ M src/app/globals.css
+ M src/app/layout.tsx
+ M src/app/page.tsx
+?? APPLY_DASH_UI_POLISH.sh
+?? APPLY_META_CAMPAIGNS.sh
+?? APPLY_META_CHROME_V2.sh
+?? APPLY_META_DASHBOARD.sh
+?? APPLY_META_STYLE_HOME.sh
+?? APPLY_PALETTE_META.sh
+?? APPLY_PRO_SYSTEM_V1.sh
+?? FIND_AND_PATCH_DASH_LAYOUT.sh
+?? FORCE_META_VISUAL.sh
+?? MAKE_BACKUP_NOW.sh
+?? SMOKE_TEST_AAR.sh
+?? _backup_pro_20260101-020256/
+?? components/dashboard-meta/
+?? components/home-meta/
+?? components/pro/
+?? src/app/dashboard/campaigns/page.tsx.bak.20251231-004528
+?? src/app/dashboard/layout.tsx.bak.20251231-001253
+?? src/app/dashboard/layout.tsx.bak.20251231-003318
+?? src/app/dashboard/layout.tsx.bak.20251231-065224
+?? src/app/dashboard/layout.tsx.bak.20251231-071007
+?? src/app/dashboard/page.tsx.bak.20251231-001253
+?? src/app/dashboard/settings/layout.tsx.bak.20251231-070030
+?? src/app/dashboard/settings/layout.tsx.bak.20251231-070233
+?? src/app/globals.css.bak.20251230-005413
+?? src/app/globals.css.bak.20251230-235409
+?? src/app/globals.css.bak.20251231-003318
+?? src/app/globals.css.bak.20251231-010635
+?? src/app/globals.css.bak.20251231-065223
+?? src/app/globals.css.bak.20251231-070030
+?? src/app/globals.css.bak.20251231-070233
+?? src/app/globals.css.bak.20251231-071007
+?? src/app/globals.css.bak.20251231-072527
+?? src/app/globals.css.bak.20251231-184242
+?? src/app/globals.css.bak.20251231-202426
+?? src/app/page.tsx.bak.20251230-005413
+?? src/app/page.tsx.bak.20251230-235409

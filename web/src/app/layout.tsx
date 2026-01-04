@@ -1,7 +1,10 @@
+
 import type { Metadata } from "next";
+import ClientTracker from "@/components/ClientTracker";
+import ChatWidget from "@/components/ChatWidget";
+import ProChatbot from "@/components/pro/ProChatbot";
 import "./globals.css";
 import Script from 'next/script';
-
 export const metadata: Metadata = {
   title: "AI Ads Revolution",
   description: "Piattaforma di advertising AI-first con motore neurale.",
@@ -24,7 +27,8 @@ gtag('js', new Date());
 gtag('config', 'AW-17796040640');
 `}</Script>
 
-      <body className="bg-slate-950 text-slate-100">
+      <body className="bg-slate-950 text-slate-100 aar-shell">
+  <ClientTracker />
         {children}
 
         {/* 🔮 Pulsante Chatbot — Sfera luminosa futuristica */}
@@ -48,8 +52,8 @@ opacity-80 backdrop-blur-xl" />
             className="relative h-3 w-3 rounded-full bg-emerald-200
                        shadow-[0_0_15px_rgba(52,211,153,1)] animate-ping"
           />
-        </a>
-      </body>
+        </a><ChatWidget />
+</body>
     </html>
   );
 }

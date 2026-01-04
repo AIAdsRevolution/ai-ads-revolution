@@ -6,6 +6,18 @@ function randomBetween(min: number, max: number) {
 }
 
 export async function POST() {
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !anon) {
+    return NextResponse.json(
+      { ok:false, error:"Missing Supabase env vars", missing: {
+        NEXT_PUBLIC_SUPABASE_URL: !supabaseUrl,
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: !anon
+      }},
+      { status: 500 }
+    );
+  }
   // Simula update di una campagna AI
   const campaigns = ['CAMP-preview-1', 'CAMP-preview-2', 'CAMP-preview-3']
 
@@ -32,7 +44,7 @@ export async function POST() {
     return NextResponse.json(
       {
         ok: false,
-        error: error.message,
+        error: String(error),
       },
       { status: 500 }
     )
