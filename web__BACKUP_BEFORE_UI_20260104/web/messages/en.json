@@ -1,0 +1,10 @@
+{
+  "nav": {
+    "login": "Login",
+    "signup": "Sign up"
+  },
+  "hero": {
+    "title": "Create campaigns that improve by themselves.",
+    "subtitle": "A neural engine that reallocates budget, optimizes creatives and bids in real time."
+  }
+}

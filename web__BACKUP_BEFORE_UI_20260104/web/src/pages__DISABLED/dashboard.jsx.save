@@ -1,0 +1,426 @@
+import React from "react";
+
+/**
+ * Dashboard SaaS Premium – versione UI statica
+ * (poi colleghiamo i dati reali di Supabase)
+ */
+
+const kpis = [
+  {
+    label: "Impression",
+    value: "124.580",
+    diff: "+18%",
+    trend: "up",
+  },
+  {
+    label: "Click",
+    value: "7.932",
+    diff: "+9%",
+    trend: "up",
+  },
+  {
+    label: "CTR medio",
+    value: "6,4%",
+    diff: "+3%",
+    trend: "up",
+  },
+  {
+    label: "Conversioni",
+    value: "312",
+    diff: "-2%",
+    trend: "down",
+  },
+  {
+    label: "Spesa mese",
+    value: "€ 487",
+    diff: "+11%",
+    trend: "up",
+  },
+];
+
+const sampleTrend = [20, 40, 30, 60, 55, 80, 70, 95];
+const sampleCtr = [3.2, 3.8, 4.1, 5.0, 5.8, 6.0, 6.2, 6.4];
+
+export default function Dashboard() {
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 
+100%)",
+        color: "#e5e7eb",
+        fontFamily:
+          "system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, 
+sans-serif",
+        padding: "24px",
+      }}
+    >
+      {/* CONTAINER CENTRALE */}
+      <div
+        style={{
+          maxWidth: "1200px",
+          margin: "0 auto",
+        }}
+      >
+        {/* TOP BAR */}
+        <header
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "24px",
+            padding: "16px 20px",
+            borderRadius: "16px",
+            border: "1px solid rgba(148,163,184,0.4)",
+            background:
+              "linear-gradient(135deg, rgba(15,23,42,0.9), 
+rgba(15,23,42,0.5))",
+            boxShadow: "0 18px 45px rgba(15,23,42,0.7)",
+            backdropFilter: "blur(16px)",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: "12px",
+                textTransform: "uppercase",
+                letterSpacing: "0.14em",
+                color: "#64748b",
+                marginBottom: "4px",
+              }}
+            >
+              Dashboard inserzionista
+            </div>
+            <h1
+              style={{
+                fontSize: "26px",
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              AI Ads Revolution
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  fontSize: "11px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.09em",
+                  padding: "4px 8px",
+                  borderRadius: "999px",
+                  border: "1px solid rgba(96,165,250,0.6)",
+                  background:
+                    "radial-gradient(circle at 0 0, rgba(59,130,246,0.2), 
+transparent 60%)",
+                }}
+              >
+                <span
+                  style={{
+                    width: "7px",
+                    height: "7px",
+                    borderRadius: "999px",
+                    background:
+                      "radial-gradient(circle at 30% 30%, #22c55e, 
+#16a34a)",
+                    boxShadow: "0 0 16px rgba(34,197,94,0.85)",
+                  }}
+                />
+                Motore neurale attivo
+              </span>
+            </h1>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "#94a3b8",
+                marginTop: "4px",
+              }}
+            >
+              Overview delle tue campagne in tempo reale. La rete neurale 
+ottimizza
+              budget, creatività e pubblico mentre tu guardi i risultati.
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: "6px",
+            }}
+          >
+            <button
+              style={{
+                fontSize: "13px",
+                padding: "8px 14px",
+                borderRadius: "999px",
+                border: "1px solid rgba(148,163,184,0.6)",
+                background:
+                  "radial-gradient(circle at top, rgba(15,23,42,0.9), 
+rgba(15,23,42,0.5))",
+                color: "#e5e7eb",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <span
+                style={{
+                  display: "inline-block",
+                  width: "6px",
+                  height: "6px",
+                  borderRadius: "999px",
+                  background:
+                    "radial-gradient(circle at 30% 30%, #f97316, 
+#ea580c)",
+                  boxShadow: "0 0 10px rgba(249,115,22,0.9)",
+                }}
+              />
+              Nuova campagna
+            </button>
+            <span
+              style={{
+                fontSize: "11px",
+                color: "#64748b",
+              }}
+            >
+              Ultimo aggiornamento AI: pochi secondi fa
+            </span>
+          </div>
+        </header>
+
+        {/* KPI CARDS */}
+        <section
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: "16px",
+            marginBottom: "24px",
+          }}
+        >
+          {kpis.map((kpi) => (
+            <KpiCard key={kpi.label} kpi={kpi} />
+          ))}
+        </section>
+
+        {/* GRAFICI & AI INSIGHTS */}
+        <section
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 2.1fr) minmax(0, 1.3fr)",
+            gap: "18px",
+            marginBottom: "22px",
+          }}
+        >
+          <div
+            style={{
+              borderRadius: "18px",
+              border: "1px solid rgba(148,163,184,0.4)",
+              background:
+                "radial-gradient(circle at top left, rgba(15,23,42,0.9), 
+rgba(15,23,42,0.75))",
+              padding: "16px 18px",
+              boxShadow: "0 20px 45px rgba(15,23,42,0.85)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: "10px",
+                alignItems: "center",
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: 500,
+                  }}
+                >
+                  Andamento campagne
+                </h2>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#64748b",
+                    marginTop: "2px",
+                  }}
+                >
+                  Impression, click e CTR aggregati negli ultimi 7 giorni.
+                </p>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontSize: "11px",
+                }}
+              >
+                <span
+                  style={{
+                    width: "10px",
+                    height: "10px",
+                    borderRadius: "999px",
+                    background:
+                      "linear-gradient(135deg, #38bdf8, #0ea5e9)",
+                  }}
+                />{" "}
+                Impression
+                <span
+                  style={{
+                    width: "10px",
+                    height: "10px",
+                    borderRadius: "999px",
+                    background:
+                      "linear-gradient(135deg, #a855f7, #6366f1)",
+                    marginLeft: "8px",
+                  }}
+                />{" "}
+                Click
+              </div>
+            </div>
+
+            <TrendChart data={sampleTrend} 
+secondData={sampleTrend.slice(2)} />
+          </div>
+
+          <div
+            style={{
+              borderRadius: "18px",
+              border: "1px solid rgba(148,163,184,0.4)",
+              background:
+                "radial-gradient(circle at top right, rgba(15,23,42,0.9), 
+rgba(15,23,42,0.75))",
+              padding: "16px 18px",
+              boxShadow: "0 18px 40px rgba(15,23,42,0.85)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
+          >
+            <div>
+              <h2
+                style={{
+                  fontSize: "15px",
+                  fontWeight: 500,
+                  marginBottom: "2px",
+                }}
+              >
+                Insights AI in tempo reale
+              </h2>
+              <p
+                style={{
+                  fontSize: "12px",
+                  color: "#64748b",
+                }}
+              >
+                Suggerimenti generati dall’intelligenza artificiale sulla 
+base
+                delle performance delle tue campagne.
+              </p>
+            </div>
+
+            <AiInsightBubble
+              title="Ottimizzazione CTR"
+              severity="success"
+              text="Il CTR delle tue campagne sta crescendo. La rete 
+neurale ha identificato creatività e segmenti di pubblico con performance 
+sopra la media. Consigliato: aumenta il budget del 12% sui gruppi ad alto 
+rendimento."
+            />
+            <AiInsightBubble
+              title="Budget distribuito in modo non uniforme"
+              severity="warning"
+              text="Una parte significativa del budget viene spesa su 
+campagne con conversioni basse. La AI suggerisce di spostare parte del 
+budget su campagne con CTR più alto e CPA più basso."
+            />
+            <AiInsightBubble
+              title="Suggerimento nuove creatività"
+              severity="info"
+              text="In base al comportamento degli utenti, potresti 
+testare creatività orientate a 'urgenza + prova sociale' (es. recensioni, 
+casi studio). Vuoi che l’AI generi automaticamente 3 nuove varianti di 
+annunci?"
+            />
+          </div>
+        </section>
+
+        {/* CTR FOCUS + LISTA CAMPAGNE */}
+        <section
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1.8fr)",
+            gap: "18px",
+            marginBottom: "32px",
+          }}
+        >
+          <div
+            style={{
+              borderRadius: "18px",
+              border: "1px solid rgba(148,163,184,0.4)",
+              background:
+                "radial-gradient(circle at bottom left, 
+rgba(15,23,42,0.95), rgba(15,23,42,0.8))",
+              padding: "16px 18px",
+              boxShadow: "0 16px 36px rgba(15,23,42,0.85)",
+            }}
+          >
+            <div
+              style={{
+                marginBottom: "10px",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: "15px",
+                  fontWeight: 500,
+                  marginBottom: "2px",
+                }}
+              >
+                CTR focus
+              </h2>
+              <p
+                style={{
+                  fontSize: "12px",
+                  color: "#64748b",
+                }}
+              >
+                Andamento CTR medio delle ultime campagne.
+              </p>
+            </div>
+            <CtrChart data={sampleCtr} />
+          </div>
+
+          <div
+            style={{
+              borderRadius: "18px",
+              border: "1px solid rgba(148,163,184,0.4)",
+              background:
+                "radial-gradient(circle at bottom right, 
+rgba(15,23,42,0.95), rgba(15,23,42,0.8))",
+              padding: "16px 18px",
+              boxShadow: "0 16px 36px rgba(15,23,42,0.85)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: "8px",
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: 500,
+                    marginBottom: "2px",
+

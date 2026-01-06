@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
+// src/app/layout.tsx
 import "./globals.css";
-import AARChatWidget from "@/components/AARChatWidget";
+import Script from "next/script";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "AI Ads Revolution",
-  description: "AI-powered advertising platform",
+  description: "AI Neural Campaign Engine",
 };
 
 export default function RootLayout({
@@ -15,51 +16,58 @@ export default function RootLayout({
   return (
     <html lang="it">
       <head>
-
-        {/* IUBENDA Consent + Autoblocking */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              var _iub = _iub || [];
-              _iub.csConfiguration = {
-                siteId: 4374914,
-                cookiePolicyId: 34512888,
-                lang: "it",
-                storage: { useSiteId: true }
-              };
-            `,
-          }}
+        {/* ======================= IUBENDA (AUTOBLOCKING) ======================= */}
+        <Script
+          id="iubenda-autoblocking"
+          src="https://cs.iubenda.com/autoblocking/4374914.js"
+          strategy="beforeInteractive"
         />
-        <script src="https://cs.iubenda.com/autoblocking/4374914.js"></script>
-        <script src="//cdn.iubenda.com/cs/gpp/stub.js"></script>
-        <script
+        <Script
+          id="iubenda-gpp-stub"
+          src="//cdn.iubenda.com/cs/gpp/stub.js"
+          strategy="beforeInteractive"
+        />
+        <Script id="iubenda-config" strategy="beforeInteractive">
+          {`
+            var _iub = _iub || [];
+            _iub.csConfiguration = _iub.csConfiguration || {};
+          `}
+        </Script>
+        <Script
+          id="iubenda-cs"
           src="//cdn.iubenda.com/cs/iubenda_cs.js"
-          async
-          charSet="UTF-8"
-        ></script>
+          strategy="beforeInteractive"
+        />
+        {/* ===================================================================== */}
 
-        {/* Google Ads tag */}
-        <script
+        {/* ======================= GOOGLE ADS TAG (AW) ========================= */}
+        <Script
+          id="google-ads-src"
           async
           src="https://www.googletagmanager.com/gtag/js?id=AW-17796040640"
-        ></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'AW-17796040640');
-            `,
-          }}
+          strategy="afterInteractive"
         />
+        <Script id="google-ads-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){window.dataLayer.push(arguments);}
+            gtag('js', new Date());
 
+            // Consent Mode (SEE/UE): parte bloccato finché non c'è consenso
+            gtag('consent', 'default', {
+              ad_storage: 'denied',
+              analytics_storage: 'denied',
+              ad_user_data: 'denied',
+              ad_personalization: 'denied'
+            });
+
+            gtag('config', 'AW-17796040640');
+          `}
+        </Script>
+        {/* ===================================================================== */}
       </head>
 
-      <body>
-        {children}
-        <AARChatWidget />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

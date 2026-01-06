@@ -1,0 +1,62 @@
+import Hero from "@/components/home-v2/Hero";
+import KpiBar from "@/components/home-v2/KpiBar";
+import Section from "@/components/home-v2/Section";
+import FeatureGrid from "@/components/home-v2/FeatureGrid";
+import UiCard from "@/components/home-v2/UiCard";
+import Footer from "@/components/home-v2/Footer";
+import Link from "next/link";
+
+export default function HomePage() {
+  return (
+    <main>
+      <Hero />
+      <KpiBar />
+
+      <Section id="come-funziona" title="Come funziona" subtitle="3 step chiari, stile enterprise.">
+        <div className="grid md:grid-cols-3 gap-4">
+          <UiCard className="p-6">
+            <div className="text-xs text-zinc-400">Step 01</div>
+            <div className="mt-2 text-xl font-semibold">Collega</div>
+            <p className="mt-2 text-zinc-300 text-sm">
+              Crea account, collega obiettivi e tracking. Importa segnali e campagne.
+            </p>
+          </UiCard>
+          <UiCard className="p-6">
+            <div className="text-xs text-zinc-400">Step 02</div>
+            <div className="mt-2 text-xl font-semibold">Ottimizza</div>
+            <p className="mt-2 text-zinc-300 text-sm">
+              L’AI analizza intento, contesto e storico e rialloca budget sulle opportunità migliori.
+            </p>
+          </UiCard>
+          <UiCard className="p-6">
+            <div className="text-xs text-zinc-400">Step 03</div>
+            <div className="mt-2 text-xl font-semibold">Scala</div>
+            <p className="mt-2 text-zinc-300 text-sm">
+              Monitora KPI e aumenta la spesa solo dove la performance lo giustifica.
+            </p>
+          </UiCard>
+        </div>
+      </Section>
+
+      <Section id="features" title="Perché scegliere AI Ads Revolution" subtitle="Una UI in stile Meta/Amazon, con motore AI-first.">
+        <FeatureGrid />
+      </Section>
+
+      <Section id="cta" title="Inizia subito" subtitle="Accedi alla dashboard o crea un account in 30 secondi.">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Link href="/register" className="inline-flex items-center justify-center rounded-xl px-5 py-3 bg-white text-zinc-950 font-semibold hover:opacity-90 transition">
+            Registrati
+          </Link>
+          <Link href="/dashboard" className="inline-flex items-center justify-center rounded-xl px-5 py-3 glass hover:bg-white/10 transition">
+            Accedi alla dashboard
+          </Link>
+        </div>
+        <div className="text-xs text-zinc-400 mt-3">
+          In arrivo: integrazione Stripe completa · App iOS/Android · Multilingua globale
+        </div>
+      </Section>
+
+      <Footer />
+    </main>
+  );
+}
