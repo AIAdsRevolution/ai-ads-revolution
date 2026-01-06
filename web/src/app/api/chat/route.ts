@@ -3,49 +3,41 @@ import OpenAI from "openai";
 
 export const runtime = "nodejs";
 
-type Msg = { role: "user" | "assistant"; text: string };
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export async function POST(req: Request) {
   try {
-    const { messages }: { messages: Msg[] } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const message = typeof body?.message === "string" ? body.message.trim() : "";
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
+    if (!message) {
+      return NextResponse.json({ reply: "Messaggio vuoto." }, { status: 400 });
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
-        { ok: false, error: "Missing OPENAI_API_KEY" },
+        { reply: "OPENAI_API_KEY mancante sul server." },
         { status: 500 }
       );
     }
 
-    const client = new OpenAI({ apiKey });
-
-    // Prendiamo gli ultimi messaggi per contesto
-    const last = (messages || []).slice(-12);
-
-    const system = [
-      "Sei AI Ads Assistant di AI Ads Revolution.",
-      "Stile: professionale, chiaro, diretto, zero hype.",
-      "Obiettivo: aiutare su campagne, budget, creatività, ROAS, Google Ads, problemi account.",
-      "Se mancano dati reali, chiedi quali KPI/periodo e proponi passi concreti nella piattaforma.",
-    ].join(" ");
-
-    // Converte in input testuale (semplice e robusto)
-    const input = [
-      { role: "system", content: system },
-      ...last.map((m) => ({
-        role: m.role,
-        content: m.text,
-      })),
-    ];
+    const model = process.env.OPENAI_MODEL || "gpt-5.2";
 
     const response = await client.responses.create({
-      model: "gpt-5.2",
-      input,
+      model,
+      input: message, // ✅ stringa: compatibile con Responses API
     });
 
-    return NextResponse.json({ ok: true, text: response.output_text });
-  } catch (e: any) {
-    console.error("❌ /api/chat error:", e);
-    return NextResponse.json({ ok: false, error: String(e) }, { status: 500 });
+    return NextResponse.json({
+      reply: response.output_text || "Nessuna risposta.",
+    });
+  } catch (err: any) {
+    console.error("API /api/chat error:", err?.message || err);
+    return NextResponse.json(
+      { reply: "Errore server chat." },
+      { status: 500 }
+    );
   }
 }

@@ -1,4 +1,6 @@
-'use client'
+"use client";
+import { AAR_EVENTS } from "@/lib/aarEvents";
+
 
 import { useEffect, useMemo, useState } from 'react'
 
@@ -36,7 +38,7 @@ export default function BudgetPage() {
 
   useEffect(() => {
     
-    AAR_EVENTS.budget_view();
+    AAR_EVENTS?.budget_view?.();
 loadMetrics()
   }, [])
 

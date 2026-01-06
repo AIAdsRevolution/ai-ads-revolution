@@ -1,0 +1,3 @@
+cd ~/Projects/aiadsrevolution/web
+nano src/app/layout.tsx
+

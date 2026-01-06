@@ -64,9 +64,6 @@ export default function PricingPage() {
     try {
       setLoading(true);
       const res = await fetch("/api/billing/create-checkout-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: "basic" }),
         method: "POST",
       });
 
