@@ -20,3 +20,5 @@ data/*
 # macOS
 .DS_Store
 web.BAD_20260103-151337/
+web/google-oauth.json
+google-oauth.json
