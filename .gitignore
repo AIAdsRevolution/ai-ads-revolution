@@ -19,3 +19,11 @@ _RESTORE_TMP/
 **/*.bak_*
 **/*.bak.*
 **/*.save
+
+# Secrets locali (MAI su GitHub)
+_SECRETS_LOCAL/
+web/google-oauth.json
+web/*.json
+!web/package.json
+!web/package-lock.json
+!web/tsconfig.json
