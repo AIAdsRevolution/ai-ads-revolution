@@ -1,37 +1,21 @@
-# Node / Vite
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Next / deps
 node_modules/
-web/dist/
+.next/
+out/
 *.log
 
-# Python
-__pycache__/
-*.pyc
-
-# Env & creds
-.env
-*.env
-backend/.env
-backend/.env.*
-
-# Local data
-data/*
-!.gitkeep
-
-# macOS
-.DS_Store
-web.BAD_20260103-151337/
-web/google-oauth.json
-google-oauth.json
-web__BACKUP_BEFORE_UI_20260104/
-_BACKUPS/
-_BACKUPS_WEB/
-
-# NO backup/restore
+# Backup / restore spazzatura
 _RESTORE_TMP/
 **/*.bak_*
 **/*.bak.*
 **/*.save
-
-# Next / deps
-**/node_modules/
-**/.next/
