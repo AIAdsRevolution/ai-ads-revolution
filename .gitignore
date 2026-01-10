@@ -27,3 +27,6 @@ web/*.json
 !web/package.json
 !web/package-lock.json
 !web/tsconfig.json
+
+# Track env template (allow commit)
+!web/.env.example
