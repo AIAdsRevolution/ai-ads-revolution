@@ -1,62 +1,63 @@
-export const runtime = "nodejs";
-
 import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
     const { message } = await req.json();
 
     if (!process.env.OPENAI_API_KEY) {
-// build-safe:       console.error("[CHATBOT] OPENAI_API_KEY mancante!");
       return NextResponse.json(
-        { reply: "Errore configurazione AI (manca la chiave API)." },
+        { reply: "Configurazione AI non disponibile." },
         { status: 500 }
       );
     }
 
+    const model = process.env.OPENAI_MODEL || "gpt-4o";
+
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY`,
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model,
         messages: [
           {
             role: "system",
             content:
-              "Sei il chatbot ufficiale di AI Ads Revolution. Rispondi su piani, prezzi, campagne advertising e funzionamento della piattaforma.",
+              "Sei il chatbot ufficiale di AI Ads Revolution. Rispondi in modo chiaro, professionale e orientato al business su piani, prezzi, campagne advertising e funzionamento della piattaforma.",
           },
           {
             role: "user",
-            content: message,
+            content: String(message || ""),
           },
         ],
         temperature: 0.4,
-        max_tokens: 350,
+        max_tokens: 500,
       }),
     });
 
     if (!openaiRes.ok) {
-      const errText = await openaiRes.text();
-      console.error("[CHATBOT] Errore risposta OpenAI:", errText);
+      console.error("[CHATBOT] OpenAI error:", openaiRes.status);
       return NextResponse.json(
-        { reply: "Errore nel servizio AI esterno. Riprova tra poco." },
+        { reply: "Errore temporaneo del servizio AI. Riprova tra poco." },
         { status: 500 }
       );
     }
 
     const data = await openaiRes.json();
     const reply =
-      data.choices?.[0]?.message?.content ||
-      "Al momento non riesco a rispondere, riprova tra poco.";
+      data?.choices?.[0]?.message?.content ||
+      "Al momento non riesco a rispondere. Riprova tra poco.";
 
     return NextResponse.json({ reply });
-  } catch (err: any) {
-    console.error("[CHATBOT] ERRORE GENERALE:", err?.message || err);
+  } catch (err) {
+    console.error("[CHATBOT] Errore generale:", err);
     return NextResponse.json(
-      { reply: "Errore temporaneo del chatbot. Riprova tra poco." },
+      { reply: "Errore interno del chatbot. Riprova tra poco." },
       { status: 500 }
     );
   }
