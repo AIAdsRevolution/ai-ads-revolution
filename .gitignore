@@ -30,3 +30,6 @@ web/*.json
 
 # Track env template (allow commit)
 !web/.env.example
+
+# Track env template (allow commit)
+!web/.env.example
