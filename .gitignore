@@ -25,3 +25,13 @@ google-oauth.json
 web__BACKUP_BEFORE_UI_20260104/
 _BACKUPS/
 _BACKUPS_WEB/
+
+# NO backup/restore
+_RESTORE_TMP/
+**/*.bak_*
+**/*.bak.*
+**/*.save
+
+# Next / deps
+**/node_modules/
+**/.next/
