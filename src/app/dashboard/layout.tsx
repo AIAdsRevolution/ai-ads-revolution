@@ -1,0 +1,18 @@
+import ProChatbot from "@/components/pro/ProChatbot";
+import Sidebar from "@/components/dashboard-meta/Sidebar";
+import Topbar from "@/components/dashboard-meta/Topbar";
+import SkyLikeChatWidget from "@/components/assistant/SkyLikeChatWidget";
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="aar-shell" style={{ display: "flex", minHeight: "100vh", background: "var(--bg-main)" }}>
+      <Sidebar />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <Topbar />
+        <div className="dash-scope" style={{ padding: 16 }}>
+          {children}
+      </div>
+      </div>
+    </div>
+  );
+}
