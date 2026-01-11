@@ -13,3 +13,11 @@ logs
 .env.*.local
 *.env
 *.env.*
+
+# local archives/backups - keep local, do not push
+_BACKUPS_WEB/
+_FINAL_BACKUPS/
+_backup_*/
+_ARCHIVIO_CODE/
+components.BAK_*/
+web_BACKUP_*.zip
