@@ -65,7 +65,7 @@ export async function GET(req: Request) {
   const r = await fetch(apiUrl, {
     method: "POST",
     headers: new Headers({
-      Authorization: \`Bearer \${accessToken}\`,
+      Authorization: "Bearer " + accessToken,
       "developer-token": String(GOOGLE_ADS_DEVELOPER_TOKEN ?? ""),
       ...(LOGIN_CUSTOMER_ID ? { "login-customer-id": LOGIN_CUSTOMER_ID } : {}),
       "Content-Type": "application/json",
