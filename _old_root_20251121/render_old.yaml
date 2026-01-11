@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: ai-ads-revolution
+    env: node
+    rootDir: backend
+    plan: free
+    buildCommand: |
+      cd ../web && npm ci && npm run build
+      cd ../backend && npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: AI_BASE_URL
+        fromService:
+          name: ai-ads-advisor
+          type: web
+          property: url
+      - key: AI_BASE_URL_FALLBACK
+        value: https://ai-ads-advisor.onrender.com
+
+  - type: web
+    name: ai-ads-advisor
+    env: python
+    rootDir: ai
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn ai_service:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
