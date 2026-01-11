@@ -177,29 +177,37 @@ Authorization: `Bearer ${accessToken}`,
   totals.ctr = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
   totals.cpc = totals.clicks > 0 ? totals.costEUR / totals.clicks : 0;
   totals.roas = totals.costEUR > 0 ? totals.convValue / totals.costEUR : 0;
+  // Diagnostica: esistenza AdGroup/Ads (più compatibile di COUNT con searchStream)
+  let diagnostics: any = { adsCount: 0, adGroupsCount: 0, issues: [] as string[] };
 
-  // Diagnostica: quante ads/adgroups esistono (se 0 -> “campagna non eroga”)
-  const qCounts = `
-    SELECT
-      (SELECT COUNT(*) FROM ad_group_ad) AS ads_count,
-      (SELECT COUNT(*) FROM ad_group) AS adgroups_count
-    FROM customer
+  // Query 1: esiste almeno un Ad Group?
+  const qAdGroups = `
+    SELECT ad_group.id
+    FROM ad_group
     LIMIT 1
   `;
-  const res2 = await gaql(qCounts);
-  let diagnostics: any = { adsCount: null, adGroupsCount: null, issues: [] as string[] };
-
-  if (res2.ok && res2.rows?.[0]) {
-    const adsCount = Number(res2.rows[0].adsCount ?? 0);
-    const adGroupsCount = Number(res2.rows[0].adgroupsCount ?? 0);
-    diagnostics.adsCount = adsCount;
-    diagnostics.adGroupsCount = adGroupsCount;
-
-    if (adGroupsCount === 0) diagnostics.issues.push("Nessun gruppo di annunci: crea almeno 1 Ad Group.");
-    if (adsCount === 0) diagnostics.issues.push("Nessun annuncio: la campagna non può erogare finché non crei almeno 1 annuncio.");
+  const rAg = await gaql(qAdGroups);
+  if (!rAg.ok) {
+    diagnostics.issues.push("Diagnostica AdGroups non disponibile (permessi/GAQL).");
   } else {
-    diagnostics.issues.push("Diagnostica non disponibile (permessi/GAQL).");
+    diagnostics.adGroupsCount = rAg.rows.length; // 0 oppure 1 (existence check)
   }
+
+  // Query 2: esiste almeno un annuncio?
+  const qAds = `
+    SELECT ad_group_ad.ad.id
+    FROM ad_group_ad
+    LIMIT 1
+  `;
+  const rAds = await gaql(qAds);
+  if (!rAds.ok) {
+    diagnostics.issues.push("Diagnostica Ads non disponibile (permessi/GAQL).");
+  } else {
+    diagnostics.adsCount = rAds.rows.length; // 0 oppure 1
+  }
+
+  if (diagnostics.adGroupsCount === 0) diagnostics.issues.push("Nessun gruppo di annunci: crea almeno 1 Ad Group.");
+  if (diagnostics.adsCount === 0) diagnostics.issues.push("Nessun annuncio: la campagna non può erogare finché non crei almeno 1 annuncio.");
 
   return NextResponse.json({
     ok: true,

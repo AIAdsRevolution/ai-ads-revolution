@@ -49,3 +49,12 @@ _old_root_*/
 **/*.zip
 **/*.bak
 **/*.BAK_*
+
+.env
+.env.local
+
+# build caches
+web/tsconfig.tsbuildinfo
+
+# duplicated toolbox folder (do not commit)
+web/web/
