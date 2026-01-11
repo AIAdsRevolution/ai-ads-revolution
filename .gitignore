@@ -6,3 +6,10 @@ out
 .env.*.local
 .DS_Store
 logs
+
+# never commit secrets
+.env.local
+.env.local.*
+.env.*.local
+*.env
+*.env.*
