@@ -35,3 +35,17 @@ _old_root_*/
 **/*.zip
 **/*.bak
 **/*.BAK_*
+
+# === NEVER COMMIT: archives / old roots / caches ===
+_ARCHIVIO/
+_old_root_*/
+**/.dart_tool/
+**/build/
+**/.idea/
+**/.vscode/
+**/node_modules/
+**/*.log
+**/*.tar.gz
+**/*.zip
+**/*.bak
+**/*.BAK_*
