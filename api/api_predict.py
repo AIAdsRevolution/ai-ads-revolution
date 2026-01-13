@@ -68,6 +68,7 @@ def predict(payload: PredictRequest) -> Dict[str, Any]:
             "safety_limit": out.safety_limit,
             "vertical_used": signals.vertical,
             "confidence_rule": out.confidence,
+            "tags": out.tags,
             "confidence_ml": 0,
             "fusion_reason": "Rule-only brain (manual training).",
             "anti_illusion": {
