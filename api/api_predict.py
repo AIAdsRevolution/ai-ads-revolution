@@ -6,6 +6,21 @@ from brain_engine import InputSignals, decision_engine
 from anti_illusion import check_anti_illusion
 
 app = FastAPI(title="AIAdsRevolution Brain API", version="1.0.0")
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://www.aiadsrevolution.com",
+        "https://aiadsrevolution.com",
+        "https://aiadsrevolution.onrender.com",
+        "http://localhost:3000",
+        "http://localhost:3001",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 Vertical = Literal["LOCALE", "ECOMMERCE", "TICKET_ALTO", "B2B"]
 
