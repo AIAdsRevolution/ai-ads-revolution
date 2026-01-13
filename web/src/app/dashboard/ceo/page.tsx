@@ -13,6 +13,8 @@ type Row = {
   decision: string | null;
   confidence: number | null;
   reason: string | null;
+  tags?: any;
+  anti_illusion?: any;
 };
 
 function fmt(n: any) {
@@ -43,7 +45,14 @@ function rangeToMs(range: string) {
   if (range === "24h") return 24 * 60 * 60 * 1000;
   if (range === "7d") return 7 * 24 * 60 * 60 * 1000;
   if (range === "30d") return 30 * 24 * 60 * 60 * 1000;
-  return null; // all
+  return null;
+}
+
+function normalizeTags(t: any): string[] {
+  if (!t) return [];
+  if (Array.isArray(t)) return t.map(String);
+  if (typeof t === "string") return [t];
+  return [];
 }
 
 export default async function CEOPanel({
@@ -56,17 +65,16 @@ export default async function CEOPanel({
   const supabase = createClient(supabaseUrl, serviceRole);
 
   const verticalFilter = (searchParams?.vertical || "ALL").toUpperCase();
-  const range = (searchParams?.range || "7d").toLowerCase(); // default 7d
+  const range = (searchParams?.range || "7d").toLowerCase();
 
   const { data, error } = await supabase
     .from("ai_decision_log")
-    .select("created_at, vertical, spend_eur, clicks, days_active, add_to_cart, sales, decision, confidence, reason")
+    .select("created_at, vertical, spend_eur, clicks, days_active, add_to_cart, sales, decision, confidence, reason, tags, anti_illusion")
     .order("created_at", { ascending: false })
-    .limit(400);
+    .limit(600);
 
   let rows: Row[] = (data || []) as any;
 
-  // filtro range
   const ms = rangeToMs(range);
   if (ms) {
     const cutoff = Date.now() - ms;
@@ -76,10 +84,11 @@ export default async function CEOPanel({
     });
   }
 
-  // filtro vertical
   if (verticalFilter !== "ALL") {
     rows = rows.filter((r) => (r.vertical || "").toUpperCase() === verticalFilter);
   }
+
+  const total = rows.length;
 
   const continua = rows
     .filter((r) => r.decision === "CONTINUA")
@@ -96,7 +105,23 @@ export default async function CEOPanel({
     .sort((a, b) => (b.confidence || 0) - (a.confidence || 0))
     .slice(0, 5);
 
-  // trend ultimi 7 giorni (sempre 7 giorni, basato sul set filtrato)
+  // ALLARMI: conteggio tags + anti_illusion
+  const tagCounts = new Map<string, number>();
+  let antiIllusionCount = 0;
+
+  for (const r of rows) {
+    const tags = normalizeTags((r as any).tags);
+    for (const t of tags) tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
+
+    const ai = (r as any).anti_illusion;
+    if (ai && typeof ai === "object" && ai.triggered === true) antiIllusionCount += 1;
+  }
+
+  const topTags = [...tagCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+
+  // trend ultimi 7 giorni
   const now = new Date();
   const days = [...Array(7)].map((_, i) => {
     const d = new Date(now);
@@ -111,8 +136,6 @@ export default async function CEOPanel({
     const f = dayRows.filter((r) => r.decision === "FERMA").length;
     return { day, c, m, f, total: dayRows.length };
   });
-
-  const total = rows.length;
 
   return (
     <div className="mx-auto max-w-7xl p-6">
@@ -131,11 +154,7 @@ export default async function CEOPanel({
           <form className="flex flex-col gap-3 sm:flex-row sm:items-end" method="GET" action="/dashboard/ceo">
             <div className="flex flex-col gap-1">
               <label className="text-xs text-white/60">Periodo</label>
-              <select
-                name="range"
-                defaultValue={range}
-                className="h-10 rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white/90 outline-none"
-              >
+              <select name="range" defaultValue={range} className="h-10 rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white/90 outline-none">
                 <option value="24h">Ultime 24h</option>
                 <option value="7d">Ultimi 7 giorni</option>
                 <option value="30d">Ultimi 30 giorni</option>
@@ -145,11 +164,7 @@ export default async function CEOPanel({
 
             <div className="flex flex-col gap-1">
               <label className="text-xs text-white/60">Vertical</label>
-              <select
-                name="vertical"
-                defaultValue={verticalFilter}
-                className="h-10 rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white/90 outline-none"
-              >
+              <select name="vertical" defaultValue={verticalFilter} className="h-10 rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white/90 outline-none">
                 <option value="ALL">Tutte</option>
                 <option value="LOCALE">LOCALE</option>
                 <option value="ECOMMERCE">ECOMMERCE</option>
@@ -158,10 +173,7 @@ export default async function CEOPanel({
               </select>
             </div>
 
-            <button
-              type="submit"
-              className="h-10 rounded-xl border border-white/10 bg-white/10 px-4 text-sm font-semibold text-white hover:bg-white/15"
-            >
+            <button type="submit" className="h-10 rounded-xl border border-white/10 bg-white/10 px-4 text-sm font-semibold text-white hover:bg-white/15">
               Applica
             </button>
           </form>
@@ -173,6 +185,39 @@ export default async function CEOPanel({
       </div>
 
       {error && <div className="mt-4 text-rose-300 text-sm">{error.message}</div>}
+
+      {/* ALLARMI OGGI */}
+      <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white">Allarmi Oggi</h2>
+          <div className="text-xs text-white/60">Top problemi dai TAG + Anti-Illusione</div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+            <div className="text-xs text-white/60">Anti-Illusione trigger</div>
+            <div className="mt-1 text-2xl font-semibold text-white">{antiIllusionCount}</div>
+            <div className="mt-1 text-xs text-white/50">quando c’è rumore statistico / segnali falsi</div>
+          </div>
+
+          <div className="md:col-span-2 rounded-xl border border-white/10 bg-black/20 p-3">
+            <div className="text-xs text-white/60">Top TAG (nel filtro)</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {topTags.length === 0 && <div className="text-sm text-white/60">Nessun TAG ancora salvato (fai 5–10 analisi diverse).</div>}
+              {topTags.map(([t, n]) => (
+                <span key={t} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80">
+                  <span className="font-semibold">{t}</span>
+                  <span className="text-white/60">({n})</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 text-xs text-white/50">
+          Tip: fai 10 test diversi (LOCALE/B2B/TICKET_ALTO) per riempire MIGLIORA/CONTINUA e far emergere i TAG reali.
+        </div>
+      </div>
 
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card title="Top 5 da FERMARE oggi" subtitle="Blocca sprechi subito" rows={ferma} />
@@ -240,9 +285,7 @@ function Card({ title, subtitle, rows }: { title: string; subtitle: string; rows
               key={i}
               className={
                 "rounded-xl border p-3 " +
-                (prio
-                  ? "border-amber-400/30 bg-amber-500/10"
-                  : "border-white/10 bg-black/20")
+                (prio ? "border-amber-400/30 bg-amber-500/10" : "border-white/10 bg-black/20")
               }
             >
               <div className="flex items-center justify-between gap-3">
