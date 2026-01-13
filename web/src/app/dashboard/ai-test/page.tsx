@@ -83,8 +83,31 @@ export default function AITestPage() {
       }
 
       const data = (await r.json()) as PredictResponse;
-      setRes(data);
-    } catch (e: any) {
+      
+setRes(data);
+
+// salva su Supabase (decision log)
+await fetch("/api/ai/log", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    source: "ai-test",
+    vertical,
+    spend_eur: Number(spend || 0),
+    clicks: Number(clicks || 0),
+    days_active: Number(days || 1),
+    add_to_cart: Number(addToCart || 0),
+    sales: Number(sales || 0),
+    decision: (data as any)?.final?.decision ?? null,
+    confidence: (data as any)?.final?.confidence_rule ?? null,
+    reason: (data as any)?.final?.reason ?? null,
+    action: (data as any)?.final?.action ?? null,
+    safety_limit: (data as any)?.final?.safety_limit ?? null,
+    tags: (data as any)?.final?.tags ?? null,
+    anti_illusion: (data as any)?.final?.anti_illusion ?? null,
+  }),
+});
+} catch (e: any) {
       setErr(e?.message || "Errore sconosciuto");
     } finally {
       setLoading(false);
