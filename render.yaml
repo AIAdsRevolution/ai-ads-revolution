@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: aiadsrevolution
+    env: node
+    plan: starter
+    branch: main
+    rootDir: .
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start -- -p $PORT
+    autoDeploy: true
+
+  - type: web
+    name: aiadsrevolution-ai-core
+    env: python
+    plan: starter
+    branch: main
+    rootDir: ai-core
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    autoDeploy: true
