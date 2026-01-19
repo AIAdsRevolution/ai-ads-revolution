@@ -58,3 +58,7 @@ web/tsconfig.tsbuildinfo
 
 # duplicated toolbox folder (do not commit)
 web/web/
+
+# local video tests
+input.mp4
+public/renders/
