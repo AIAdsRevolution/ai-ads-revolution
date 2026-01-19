@@ -108,7 +108,7 @@ export default function VideoDashboard() {
         <div>
           <h1 className="text-2xl font-bold">Neural Video Editing</h1>
           <p className="text-sm text-gray-600">
-            Upload su Supabase Storage -> Render FFmpeg su server -> Output su Supabase Storage (stabile su Render).
+            Upload su Supabase Storage → Render FFmpeg su server → Output su Supabase Storage (stabile su Render).
           </p>
         </div>
 
