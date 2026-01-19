@@ -28,6 +28,13 @@ export default function VideoDashboard() {
   const [scriptLoading, setScriptLoading] = useState(false);
   const [script, setScript] = useState<any>(null);
 
+  // Upload + Render
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [rendering, setRendering] = useState(false);
+  const [renderUrl, setRenderUrl] = useState<string | null>(null);
+
   const chartData = useMemo(() => {
     const att = data?.analysis?.attention ?? [];
     return att.map((v, i) => ({ second: i, attention: v }));
@@ -95,6 +102,52 @@ export default function VideoDashboard() {
     setScriptLoading(false);
   }
 
+  async function uploadVideo() {
+    if (!file) return;
+    setUploading(true);
+    setRenderUrl(null);
+
+    const form = new FormData();
+    form.append("file", file);
+
+    const res = await fetch("/api/video/upload", { method: "POST", body: form });
+    const json = await res.json();
+
+    if (json?.ok) {
+      setUploadedUrl(json.url); // "/uploads/xxx.mp4"
+      alert("Upload OK");
+    } else {
+      alert(json?.error ?? "Upload failed");
+    }
+    setUploading(false);
+  }
+
+  async function renderVideo() {
+    if (!uploadedUrl) {
+      alert("Carica prima un video.");
+      return;
+    }
+    setRendering(true);
+
+    // "/uploads/xxx.mp4" -> "uploads/xxx.mp4"
+    const rel = uploadedUrl.startsWith("/") ? uploadedUrl.slice(1) : uploadedUrl;
+
+    const res = await fetch("/api/video/render", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ seconds, input: rel })
+    });
+    const json = await res.json();
+
+    if (json?.ok) {
+      setRenderUrl(json.output_url); // "/renders/....mp4"
+      alert("Render OK");
+    } else {
+      alert(json?.error ?? "Render failed");
+    }
+    setRendering(false);
+  }
+
   const ctaTime = data?.plan?.ctaTime ?? null;
   const hookScore = data?.analysis?.hook_score ?? null;
 
@@ -104,7 +157,7 @@ export default function VideoDashboard() {
         <div>
           <h1 className="text-2xl font-bold">🎥 Neural Video Editing</h1>
           <p className="text-sm text-gray-600">
-            Timeline neurale (retention proxy) + CTA timing + log Supabase + export FFmpeg.
+            Timeline neurale (retention proxy) + CTA timing + log Supabase + export FFmpeg + Render reale.
           </p>
         </div>
 
@@ -139,14 +192,50 @@ export default function VideoDashboard() {
         </div>
       </div>
 
-      {!data && (
-        <div className="p-6 border rounded bg-white">
-          Premi <b>Analizza</b> per generare curva attention, CTA timing e piano di editing.
+      {/* Upload + Render */}
+      <div className="p-4 border rounded bg-white space-y-3">
+        <div className="font-semibold">📤 Upload video</div>
+        <p className="text-sm text-gray-600">Carica un MP4 → poi “Render (FFmpeg)” → ottieni l’output.</p>
+
+        <div className="flex items-center gap-3 flex-wrap">
+          <input
+            type="file"
+            accept="video/mp4,video/quicktime,video/*"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
+
+          <button onClick={uploadVideo} className="px-4 py-2 border rounded" disabled={!file || uploading}>
+            {uploading ? "Upload..." : "Carica"}
+          </button>
+
+          <button onClick={renderVideo} className="px-4 py-2 bg-black text-white rounded" disabled={!uploadedUrl || rendering}>
+            {rendering ? "Rendering..." : "Render (FFmpeg)"}
+          </button>
         </div>
-      )}
+
+        {uploadedUrl && (
+          <div className="text-sm">
+            ✅ Caricato:{" "}
+            <a className="underline" href={uploadedUrl} target="_blank" rel="noreferrer">
+              {uploadedUrl}
+            </a>
+          </div>
+        )}
+
+        {renderUrl && (
+          <div className="text-sm">
+            🎬 Output:{" "}
+            <a className="underline" href={renderUrl} target="_blank" rel="noreferrer">
+              {renderUrl}
+            </a>
+          </div>
+        )}
+      </div>
 
       {data && !data.ok && (
-        <div className="p-4 border rounded bg-red-50 text-red-700">Errore: {data.error}</div>
+        <div className="p-4 border rounded bg-red-50 text-red-700">
+          Errore: {data.error}
+        </div>
       )}
 
       {data?.ok && (
@@ -188,6 +277,7 @@ export default function VideoDashboard() {
 {JSON.stringify(data.plan, null, 2)}
               </pre>
             </div>
+
             <div className="p-4 border rounded bg-white">
               <h2 className="font-semibold mb-2">🎬 Guida FFmpeg</h2>
               <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto max-h-72">
