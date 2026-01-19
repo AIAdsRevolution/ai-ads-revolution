@@ -20,20 +20,27 @@ type AnalyzeResp = {
   error?: string;
 };
 
+type UploadResp = { ok: boolean; bucket?: string; key?: string; url?: string; error?: string };
+type RenderResp = {
+  ok: boolean;
+  input?: { bucket: string; key: string; url: string };
+  output?: { bucket: string; key: string; url: string };
+  plan?: any;
+  applied?: any;
+  error?: string;
+};
+
 export default function VideoDashboard() {
   const [seconds, setSeconds] = useState(25);
   const [data, setData] = useState<AnalyzeResp | null>(null);
   const [loading, setLoading] = useState(false);
-  const [logging, setLogging] = useState(false);
-  const [scriptLoading, setScriptLoading] = useState(false);
-  const [script, setScript] = useState<any>(null);
 
-  // Upload + Render
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [uploaded, setUploaded] = useState<{ bucket: string; key: string; url: string } | null>(null);
+
   const [rendering, setRendering] = useState(false);
-  const [renderUrl, setRenderUrl] = useState<string | null>(null);
+  const [rendered, setRendered] = useState<{ bucket: string; key: string; url: string } | null>(null);
 
   const chartData = useMemo(() => {
     const att = data?.analysis?.attention ?? [];
@@ -42,7 +49,6 @@ export default function VideoDashboard() {
 
   async function analyze() {
     setLoading(true);
-    setScript(null);
     const res = await fetch("/api/video/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -53,97 +59,42 @@ export default function VideoDashboard() {
     setLoading(false);
   }
 
-  async function logToSupabase() {
-    if (!data?.ok) return;
-    setLogging(true);
-    await fetch("/api/video/log", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        source: "dashboard-video",
-        seconds: data.analysis?.seconds,
-        attention: data.analysis?.attention,
-        plan: data.plan
-      })
-    });
-    setLogging(false);
-  }
-
-  async function exportGuide() {
-    if (!data?.ok) return;
-    const res = await fetch("/api/video/export", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ffmpeg: data.ffmpeg, plan: data.plan })
-    });
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "aiadsrevolution_ffmpeg_guide.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  async function makeScript() {
-    setScriptLoading(true);
-    const res = await fetch("/api/video/script", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        product: "AI Ads Revolution",
-        target: "chi fa advertising e vuole risultati",
-        offer: "Prova 3 giorni + demo",
-        platform: "YouTube Shorts"
-      })
-    });
-    const json = await res.json();
-    setScript(json?.script ?? null);
-    setScriptLoading(false);
-  }
-
   async function uploadVideo() {
     if (!file) return;
     setUploading(true);
-    setRenderUrl(null);
+    setRendered(null);
 
     const form = new FormData();
     form.append("file", file);
 
     const res = await fetch("/api/video/upload", { method: "POST", body: form });
-    const json = await res.json();
+    const json: UploadResp = await res.json();
 
-    if (json?.ok) {
-      setUploadedUrl(json.url); // "/uploads/xxx.mp4"
-      alert("Upload OK");
+    if (json.ok && json.bucket && json.key && json.url) {
+      setUploaded({ bucket: json.bucket, key: json.key, url: json.url });
+      alert("Upload OK (Supabase)");
     } else {
-      alert(json?.error ?? "Upload failed");
+      alert(json.error ?? "Upload failed");
     }
     setUploading(false);
   }
 
   async function renderVideo() {
-    if (!uploadedUrl) {
-      alert("Carica prima un video.");
-      return;
-    }
+    if (!uploaded) return alert("Carica prima un video.");
     setRendering(true);
-
-    // "/uploads/xxx.mp4" -> "uploads/xxx.mp4"
-    const rel = uploadedUrl.startsWith("/") ? uploadedUrl.slice(1) : uploadedUrl;
 
     const res = await fetch("/api/video/render", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ seconds, input: rel })
+      body: JSON.stringify({ seconds, bucket: uploaded.bucket, key: uploaded.key })
     });
-    const json = await res.json();
+    const json: RenderResp = await res.json();
 
-    if (json?.ok) {
-      setRenderUrl(json.output_url); // "/renders/....mp4"
-      alert("Render OK");
+    if (json.ok && json.output?.url) {
+      setRendered({ bucket: json.output.bucket, key: json.output.key, url: json.output.url });
+      alert("Render OK (Supabase)");
     } else {
-      alert(json?.error ?? "Render failed");
+      alert(json.error ?? "Render failed");
     }
     setRendering(false);
   }
@@ -155,9 +106,9 @@ export default function VideoDashboard() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold">🎥 Neural Video Editing</h1>
+          <h1 className="text-2xl font-bold">Neural Video Editing</h1>
           <p className="text-sm text-gray-600">
-            Timeline neurale (retention proxy) + CTA timing + log Supabase + export FFmpeg + Render reale.
+            Upload su Supabase Storage -> Render FFmpeg su server -> Output su Supabase Storage (stabile su Render).
           </p>
         </div>
 
@@ -177,80 +128,46 @@ export default function VideoDashboard() {
           <button onClick={analyze} className="px-4 py-2 bg-black text-white rounded" disabled={loading}>
             {loading ? "Analisi..." : "Analizza"}
           </button>
-
-          <button onClick={logToSupabase} className="px-4 py-2 border rounded" disabled={!data?.ok || logging}>
-            {logging ? "Salvataggio..." : "Log Supabase"}
-          </button>
-
-          <button onClick={exportGuide} className="px-4 py-2 border rounded" disabled={!data?.ok}>
-            Export FFmpeg
-          </button>
-
-          <button onClick={makeScript} className="px-4 py-2 border rounded" disabled={scriptLoading}>
-            {scriptLoading ? "Script..." : "Script Video"}
-          </button>
         </div>
       </div>
 
-      {/* Upload + Render */}
       <div className="p-4 border rounded bg-white space-y-3">
-        <div className="font-semibold">📤 Upload video</div>
-        <p className="text-sm text-gray-600">Carica un MP4 → poi “Render (FFmpeg)” → ottieni l’output.</p>
-
+        <div className="font-semibold">Upload video (Supabase)</div>
         <div className="flex items-center gap-3 flex-wrap">
-          <input
-            type="file"
-            accept="video/mp4,video/quicktime,video/*"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          />
-
+          <input type="file" accept="video/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           <button onClick={uploadVideo} className="px-4 py-2 border rounded" disabled={!file || uploading}>
             {uploading ? "Upload..." : "Carica"}
           </button>
-
-          <button onClick={renderVideo} className="px-4 py-2 bg-black text-white rounded" disabled={!uploadedUrl || rendering}>
+          <button onClick={renderVideo} className="px-4 py-2 bg-black text-white rounded" disabled={!uploaded || rendering}>
             {rendering ? "Rendering..." : "Render (FFmpeg)"}
           </button>
         </div>
 
-        {uploadedUrl && (
+        {uploaded?.url && (
           <div className="text-sm">
-            ✅ Caricato:{" "}
-            <a className="underline" href={uploadedUrl} target="_blank" rel="noreferrer">
-              {uploadedUrl}
-            </a>
+            Uploaded: <a className="underline" href={uploaded.url} target="_blank" rel="noreferrer">{uploaded.url}</a>
           </div>
         )}
-
-        {renderUrl && (
+        {rendered?.url && (
           <div className="text-sm">
-            🎬 Output:{" "}
-            <a className="underline" href={renderUrl} target="_blank" rel="noreferrer">
-              {renderUrl}
-            </a>
+            Output: <a className="underline" href={rendered.url} target="_blank" rel="noreferrer">{rendered.url}</a>
           </div>
         )}
       </div>
-
-      {data && !data.ok && (
-        <div className="p-4 border rounded bg-red-50 text-red-700">
-          Errore: {data.error}
-        </div>
-      )}
 
       {data?.ok && (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="p-4 border rounded bg-white">
-              <div className="text-sm text-gray-500">Hook score (0–100)</div>
+              <div className="text-sm text-gray-500">Hook score</div>
               <div className="text-3xl font-bold">{hookScore}</div>
             </div>
             <div className="p-4 border rounded bg-white">
-              <div className="text-sm text-gray-500">CTA time (sec)</div>
+              <div className="text-sm text-gray-500">CTA time</div>
               <div className="text-3xl font-bold">{ctaTime}</div>
             </div>
             <div className="p-4 border rounded bg-white">
-              <div className="text-sm text-gray-500">Cuts suggeriti</div>
+              <div className="text-sm text-gray-500">Cuts</div>
               <div className="text-3xl font-bold">{data?.plan?.cuts?.length ?? 0}</div>
             </div>
           </div>
@@ -272,28 +189,18 @@ export default function VideoDashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="p-4 border rounded bg-white">
-              <h2 className="font-semibold mb-2">🧠 Decisioni Neurali</h2>
+              <h2 className="font-semibold mb-2">Decisioni</h2>
               <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto max-h-72">
 {JSON.stringify(data.plan, null, 2)}
               </pre>
             </div>
-
             <div className="p-4 border rounded bg-white">
-              <h2 className="font-semibold mb-2">🎬 Guida FFmpeg</h2>
+              <h2 className="font-semibold mb-2">FFmpeg guide</h2>
               <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto max-h-72">
 {JSON.stringify(data.ffmpeg, null, 2)}
               </pre>
             </div>
           </div>
-
-          {script && (
-            <div className="p-4 border rounded bg-white">
-              <h2 className="font-semibold mb-2">📜 Script Video Ads (v1)</h2>
-              <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto max-h-72">
-{JSON.stringify(script, null, 2)}
-              </pre>
-            </div>
-          )}
         </>
       )}
     </div>
