@@ -106,7 +106,7 @@ export default function VideoDashboard() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold">Neural Video Editing</h1>
+          <h1 className="text-2xl font-bold">🎥 Neural Video Editing</h1>
           <p className="text-sm text-gray-600">
             Upload su Supabase Storage → Render FFmpeg su server → Output su Supabase Storage (stabile su Render).
           </p>
