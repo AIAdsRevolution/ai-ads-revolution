@@ -1,4 +1,5 @@
 import os
+from datetime import date, timedelta
 from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
@@ -10,6 +11,7 @@ from fastapi import HTTPException
 from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads.errors import GoogleAdsException
 import os
+from datetime import date, timedelta
 
 @app.get("/google/kpi")
 def google_kpi(days: int = 28):
@@ -39,13 +41,15 @@ def google_kpi(days: int = 28):
     client = GoogleAdsClient.load_from_dict(cfg)
     ga_service = client.get_service("GoogleAdsService")
 
+    start = date.today() - timedelta(days=int(days))
+    end = date.today()
     query = f"""
       SELECT
         metrics.clicks,
         metrics.impressions,
         metrics.cost_micros
       FROM customer
-      WHERE segments.date DURING LAST_{days}_DAYS
+      WHERE segments.date BETWEEN '{start.isoformat()}' AND '{end.isoformat()}'
     """
 
     try:
