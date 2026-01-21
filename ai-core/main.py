@@ -8,6 +8,7 @@ from app.routes.google_ads import router as google_ads_router
 app = FastAPI()
 from fastapi import HTTPException
 from google.ads.googleads.client import GoogleAdsClient
+from google.ads.googleads.errors import GoogleAdsException
 import os
 
 @app.get("/google/kpi")
@@ -47,7 +48,13 @@ def google_kpi(days: int = 28):
       WHERE segments.date DURING LAST_{days}_DAYS
     """
 
-    resp = ga_service.search(customer_id=customer_id, query=query)
+    try:
+        resp = ga_service.search(customer_id=customer_id, query=query)
+    except GoogleAdsException as e:
+        # errore API Google Ads -> risposta leggibile
+        return {"ok": False, "error": "google_ads_error", "message": str(e)}
+    except Exception as e:
+        return {"ok": False, "error": "server_error", "message": str(e)}
     clicks = impressions = cost_micros = 0
 
     for row in resp:
