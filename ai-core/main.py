@@ -6,6 +6,62 @@ from app.routes.google_ads import router as google_ads_router
 
 # Inizializza FastAPI
 app = FastAPI()
+from fastapi import HTTPException
+from google.ads.googleads.client import GoogleAdsClient
+import os
+
+@app.get("/google/kpi")
+def google_kpi(days: int = 28):
+    developer_token = os.getenv("GOOGLE_ADS_DEVELOPER_TOKEN", "").strip()
+    client_id = os.getenv("GOOGLE_ADS_CLIENT_ID", "").strip()
+    client_secret = os.getenv("GOOGLE_ADS_CLIENT_SECRET", "").strip()
+    refresh_token = os.getenv("GOOGLE_ADS_REFRESH_TOKEN", "").strip()
+    customer_id = (os.getenv("GOOGLE_ADS_CUSTOMER_ID", "") or "").replace("-", "").strip()
+    login_customer_id = (os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "") or "").replace("-", "").strip() or None
+
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="oauth_token")
+    if not (developer_token and client_id and client_secret):
+        raise HTTPException(status_code=500, detail="missing_google_ads_env")
+    if not customer_id:
+        raise HTTPException(status_code=400, detail="missing_customer_id")
+
+    cfg = {
+        "developer_token": developer_token,
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "refresh_token": refresh_token,
+        "login_customer_id": login_customer_id,
+        "use_proto_plus": True,
+    }
+
+    client = GoogleAdsClient.load_from_dict(cfg)
+    ga_service = client.get_service("GoogleAdsService")
+
+    query = f"""
+      SELECT
+        metrics.clicks,
+        metrics.impressions,
+        metrics.cost_micros
+      FROM customer
+      WHERE segments.date DURING LAST_{days}_DAYS
+    """
+
+    resp = ga_service.search(customer_id=customer_id, query=query)
+    clicks = impressions = cost_micros = 0
+
+    for row in resp:
+        m = row.metrics
+        clicks += int(m.clicks or 0)
+        impressions += int(m.impressions or 0)
+        cost_micros += int(m.cost_micros or 0)
+
+    ctr = (clicks / impressions * 100) if impressions else 0.0
+    cpc = ((cost_micros / 1_000_000) / clicks) if clicks else 0.0
+    spend = cost_micros / 1_000_000
+
+    return {"ok": True, "days": days, "clicks": clicks, "impressions": impressions, "ctr": ctr, "cpc": cpc, "spend": spend}
+
 
 
 app.include_router(google_ads_router)
