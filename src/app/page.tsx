@@ -1,3 +1,4 @@
+import KpiLivePreview from "@/components/KpiLivePreview";
 import Link from "next/link";
 
 export default function HomePage() {
@@ -96,7 +97,7 @@ export default function HomePage() {
           <div className="pro-card" style={{ padding: 18, overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
               <div>
-                <div style={{ fontWeight: 800 }}>Performance preview</div>
+                <div style={{ fontWeight: 800 }}><KpiLivePreview days={28} /></div>
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,.65)", marginTop: 2 }}>
                   AI Neural Campaign Engine • ultimi 28 giorni
                 </div>
