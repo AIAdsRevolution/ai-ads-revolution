@@ -97,67 +97,8 @@ export default function HomePage() {
           <div className="pro-card" style={{ padding: 18, overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
               <div>
-                <div style={{ fontWeight: 800 }}><KpiLivePreview days={28} /></div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,.65)", marginTop: 2 }}>
-                  AI Neural Campaign Engine • ultimi 28 giorni
-                </div>
-              </div>
-              <div className="pro-pill">
-                <span style={{ width: 8, height: 8, borderRadius: 99, background: "rgba(34,197,94,.9)" }} />
-                AI ON
-              </div>
-            </div>
-
-            <div style={{ marginTop: 14 }} className="pro-card-flat">
-              <div style={{ padding: 14 }}>
-                <div style={{ color: "rgba(255,255,255,.65)", fontSize: 12 }}>Trend AI</div>
-                <div style={{ height: 140, marginTop: 10, borderRadius: 14, border: "1px solid rgba(255,255,255,.08)", overflow: "hidden", background: "rgba(255,255,255,.03)" }}>
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      background:
-                        "radial-gradient(600px 200px at 20% 40%, rgba(37,99,235,.30), transparent 60%), radial-gradient(500px 220px at 80% 60%, rgba(34,211,238,.15), transparent 60%)",
-                      position: "relative",
-                    }}
-                  >
-                    <div style={{ position: "absolute", left: 16, bottom: 18, color: "rgba(255,255,255,.65)", fontSize: 12 }}>
-                      ROAS
-                    </div>
-                    <div style={{ position: "absolute", right: 16, top: 14, color: "rgba(255,255,255,.85)", fontWeight: 800 }}>
-                      0.0x
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 10, marginTop: 10 }}>
-                  <div className="pro-kpi-card" style={{ padding: 12 }}>
-                    <div className="pro-kpi-label">CTR medio</div>
-                    <div className="pro-kpi-val">0.0%</div>
-                  </div>
-                  <div className="pro-kpi-card" style={{ padding: 12 }}>
-                    <div className="pro-kpi-label">CPC medio</div>
-                    <div className="pro-kpi-val">€ 0.00</div>
-                  </div>
-                  <div className="pro-kpi-card" style={{ padding: 12 }}>
-                    <div className="pro-kpi-label">ROAS medio</div>
-                    <div className="pro-kpi-val">0.0x</div>
-                  </div>
-                  <div className="pro-kpi-card" style={{ padding: 12 }}>
-                    <div className="pro-kpi-label">AI Actions</div>
-                    <div className="pro-kpi-val">0</div>
-                  </div>
-                </div>
-
-                <div style={{ marginTop: 10, color: "rgba(255,255,255,.58)", fontSize: 12 }}>
-                  Collega campagne reali per vedere KPI live. La dashboard è l’area dei dati dettagliati.
-                </div>
-
-                <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-                  <span className="pro-pill">Decision log</span>
-                  <span className="pro-pill">Budget shift</span>
-                  <span className="pro-pill">Creative AI</span>
-                </div>
+                <KpiLivePreview days={28} />
+</div>
               </div>
             </div>
           </div>
