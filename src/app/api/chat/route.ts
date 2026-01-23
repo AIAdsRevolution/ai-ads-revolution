@@ -1,14 +1,28 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
+
+function getOpenAIClient() {
+  const apiKey = (process.env.OPENAI_API_KEY || "").trim();
+  if (!apiKey) return null;
+  // Istanzia SOLO a runtime (non a build)
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const OpenAI = require("openai").default;
+  return new OpenAI({ apiKey });
+}
 export const runtime = "nodejs";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function POST(req: Request) {
-  try {
+  
+  const client = getOpenAIClient();
+  if (!client) {
+    return NextResponse.json(
+      { ok: false, error: "missing_openai_key" },
+      { status: 500 }
+    );
+  }
+
+try {
     const body = await req.json().catch(() => ({}));
     const message = typeof body?.message === "string" ? body.message.trim() : "";
 
