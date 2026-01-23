@@ -15,11 +15,11 @@ type Kpi = {
 };
 
 function fmtMoney(n: number) {
-  if (!isFinite(n)) return "€ 0.00";
+  if (!isFinite(n)) return "€ 0,00";
   return new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(n);
 }
 function fmtPct(n: number) {
-  if (!isFinite(n)) return "0.0%";
+  if (!isFinite(n)) return "0,0%";
   return `${n.toFixed(1)}%`;
 }
 function fmtNum(n: number) {
@@ -66,7 +66,7 @@ export default function KpiLivePreview({ days = 28 }: { days?: number }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
       <div className="flex items-center justify-between gap-3">
-        <div style={{ fontWeight: 800 }}>Performance preview</div>
+        <div className="text-sm font-semibold">Performance preview</div>
         <div className="text-xs opacity-70">
           AI Neural Campaign Engine • ultimi {days} giorni •{" "}
           <span className={ok ? "text-emerald-600" : "text-slate-500"}>
