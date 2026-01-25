@@ -8,6 +8,9 @@ services:
     buildCommand: npm ci && npm run build
     startCommand: npm run start -- -p $PORT
     autoDeploy: true
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
 
   - type: web
     name: aiadsrevolution-ai-core
