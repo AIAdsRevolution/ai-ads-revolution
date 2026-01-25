@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 
+function fetchWithTimeout(url: string, ms = 8000) {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), ms);
+  return fetch(url, { cache: "no-store", signal: controller.signal }).finally(() => clearTimeout(t));
+}
+
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -19,7 +25,14 @@ export async function GET(req: Request) {
     // Fonte unica: /api/googleads/metrics (già ok online+local)
     const url = new URL(req.url);
     const origin = `${url.protocol}//${url.host}`;
-    const r = await fetch(`${origin}/api/googleads/metrics`, { cache: "no-store" });
+    let r: Response;
+    try {
+      r = await fetchWithTimeout(`${origin}/api/googleads/metrics`, 8000);
+      if (!r.ok) throw new Error(`metrics_status_${r.status}`);
+    } catch (e) {
+      // retry breve
+      r = await fetchWithTimeout(`${origin}/api/googleads/metrics`, 12000);
+    }
     const j: any = await r.json().catch(() => null);
 
     if (!r.ok || !j?.ok) {
