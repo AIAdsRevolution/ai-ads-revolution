@@ -69,3 +69,6 @@ __pycache__/
 
 # local debug routes
 src/app/api/_debug/
+
+# secrets
+google-oauth.json
