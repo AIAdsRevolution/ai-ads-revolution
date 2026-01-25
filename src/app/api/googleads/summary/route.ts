@@ -23,7 +23,6 @@ export async function GET(req: Request) {
     const days = [7, 14, 28, 90].includes(daysRaw) ? daysRaw : 28;
 
     // Fonte unica: /api/googleads/metrics (già ok online+local)
-    const url = new URL(req.url);
 
     // ✅ In produzione su Render evita Cloudflare: chiama localhost interno
     const isLocal = url.host.includes("localhost") || url.host.includes("127.0.0.1");
