@@ -1,223 +1,79 @@
 import { NextResponse } from "next/server";
 
-function ymd(d: Date) {
-  const z = new Date(d);
-  const yyyy = z.getFullYear();
-  const mm = String(z.getMonth() + 1).padStart(2, "0");
-  const dd = String(z.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+function isoDate(d: Date) {
+  return d.toISOString().slice(0, 10);
 }
 
 export async function GET(req: Request) {
-  
-  const {
-    GOOGLE_ADS_CLIENT_ID,
-    GOOGLE_ADS_CLIENT_SECRET,
-    GOOGLE_ADS_DEVELOPER_TOKEN,
-    GOOGLE_ADS_CUSTOMER_ID,
-    GOOGLE_ADS_REFRESH_TOKEN,
-    GOOGLE_ADS_LOGIN_CUSTOMER_ID,
-  } = process.env;
-  let accessToken = "";
-  
+  try {
+    const url = new URL(req.url);
+    const baseUrl = `${url.protocol}//${url.host}`;
 
-  if (
-    !GOOGLE_ADS_CLIENT_ID ||
-    !GOOGLE_ADS_CLIENT_SECRET ||
-    !GOOGLE_ADS_DEVELOPER_TOKEN ||
-    !GOOGLE_ADS_CUSTOMER_ID ||
-    !GOOGLE_ADS_REFRESH_TOKEN
-  ) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Missing Google Ads env vars",
-        missing: {
-          GOOGLE_ADS_CLIENT_ID: !GOOGLE_ADS_CLIENT_ID,
-          GOOGLE_ADS_CLIENT_SECRET: !GOOGLE_ADS_CLIENT_SECRET,
-          GOOGLE_ADS_DEVELOPER_TOKEN: !GOOGLE_ADS_DEVELOPER_TOKEN,
-          GOOGLE_ADS_CUSTOMER_ID: !GOOGLE_ADS_CUSTOMER_ID,
-          GOOGLE_ADS_REFRESH_TOKEN: !GOOGLE_ADS_REFRESH_TOKEN,
-          GOOGLE_ADS_LOGIN_CUSTOMER_ID: !GOOGLE_ADS_LOGIN_CUSTOMER_ID,
-        },
+    // supporta ?days=7|14|28|90 (solo per coerenza dell’output)
+    const daysRaw = Number(url.searchParams.get("days") || "28");
+    const days = [7, 14, 28, 90].includes(daysRaw) ? daysRaw : 28;
+
+    // Fonte unica: /api/googleads/metrics (già ok online+local)
+    const r = await fetch(`${baseUrl}/api/googleads/metrics`, { cache: "no-store" });
+    const j: any = await r.json().catch(() => null);
+
+    if (!r.ok || !j?.ok) {
+      return NextResponse.json(
+        { ok: false, step: "fetch_metrics", status: r.status, upstream: j },
+        { status: 200 }
+      );
+    }
+
+    const campaigns = Array.isArray(j.campaigns) ? j.campaigns : [];
+
+    const totals = campaigns.reduce(
+      (acc: any, c: any) => {
+        acc.impressions += Number(c.impressions || 0);
+        acc.clicks += Number(c.clicks || 0);
+        acc.costEUR += Number(c.costEUR || 0);
+        acc.conversions += Number(c.conversions || 0);
+        acc.convValue += Number(c.convValue || 0);
+        return acc;
       },
-      { status: 500 }
+      { impressions: 0, clicks: 0, costEUR: 0, conversions: 0, convValue: 0 }
     );
-  }
 
-  // range: default 28 giorni, supporta ?days=7|14|28|90
-  const url = new URL(req.url);
-  const daysRaw = Number(url.searchParams.get("days") || "28");
-  const days = [7, 14, 28, 90].includes(daysRaw) ? daysRaw : 28;
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - (days - 1));
+    const ctr = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
+    const cpc = totals.clicks > 0 ? totals.costEUR / totals.clicks : 0;
+    const roas = totals.costEUR > 0 ? totals.convValue / totals.costEUR : 0;
 
-  // 1) refresh_token -> access_token
-  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-  headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: GOOGLE_ADS_CLIENT_ID,
-      client_secret: GOOGLE_ADS_CLIENT_SECRET,
-      refresh_token: GOOGLE_ADS_REFRESH_TOKEN,
-      grant_type: "refresh_token",
-    }),
-  });
+    const end = new Date();
+    const start = new Date(Date.now() - (days - 1) * 24 * 60 * 60 * 1000);
 
-  const tokenJson: any = await tokenRes.json();
-  if (!tokenRes.ok) {
-    return NextResponse.json(
-      { ok: false, step: "oauth_token", tokenJson },
-      { status: 500 }
-    );
-  }
-  accessToken = tokenJson.access_token as string;
+    const issues: string[] = [];
+    const removed = campaigns.filter((c: any) => String(c.status || "").toUpperCase() === "REMOVED");
+    if (removed.length > 0) issues.push(`Ci sono ${removed.length} campagne in stato REMOVED (non attive).`);
 
-  const CUSTOMER_ID = String(GOOGLE_ADS_CUSTOMER_ID).replace(/-/g, "");
-  const LOGIN_CUSTOMER_ID = (GOOGLE_ADS_LOGIN_CUSTOMER_ID || "").replace(/-/g, "");
-
-  const apiUrl = `https://googleads.googleapis.com/v22/customers/${CUSTOMER_ID}/googleAds:searchStream`;
-
-  async function gaql(query: string) {
-    const r = await fetch(apiUrl, {
-      method: "POST",
-      headers: (new Headers({
-Authorization: `Bearer ${accessToken}`,
-        "developer-token": String(GOOGLE_ADS_DEVELOPER_TOKEN ?? ""),
-        ...(LOGIN_CUSTOMER_ID ? { "login-customer-id": LOGIN_CUSTOMER_ID } : {}),
-        "Content-Type": "application/json",
-      }) as any),
-      body: JSON.stringify({ query }),
+    return NextResponse.json({
+      ok: true,
+      source: "metrics",
+      apiVersion: j.apiVersion || "v22",
+      customerId: j.customerId,
+      loginCustomerId: j.loginCustomerId,
+      range: { days, start: isoDate(start), end: isoDate(end) },
+      totals: {
+        impressions: totals.impressions,
+        clicks: totals.clicks,
+        costEUR: Number(totals.costEUR.toFixed(6)),
+        ctr,
+        cpc,
+        conversions: totals.conversions,
+        convValue: totals.convValue,
+        roas,
+      },
+      campaignsCount: campaigns.length,
+      campaigns,
+      diagnostics: { issues },
     });
-
-    const t = await r.text();
-    if (!r.ok) {
-      return { ok: false as const, status: r.status, body: t };
-    }
-    let parsed: any = null;
-    try {
-      parsed = JSON.parse(t);
-    } catch {
-      parsed = t;
-    }
-    const rows =
-      Array.isArray(parsed)
-        ? parsed.flatMap((chunk: any) => chunk.results ?? [])
-        : [];
-    return { ok: true as const, rows };
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, step: "exception", error: e?.message ?? String(e) }, { status: 200 });
   }
-
-  const startYMD = ymd(start);
-  const endYMD = ymd(end);
-
-  // Totali + per-campagna (last N days)
-  const qSummary = `
-    SELECT
-      campaign.id,
-      campaign.name,
-      campaign.status,
-      metrics.impressions,
-      metrics.clicks,
-      metrics.cost_micros,
-      metrics.conversions,
-      metrics.conversions_value
-    FROM campaign
-    WHERE segments.date BETWEEN '${startYMD}' AND '${endYMD}'
-    ORDER BY metrics.impressions DESC
-    LIMIT 50
-  `;
-
-  const res = await gaql(qSummary);
-  if (!res.ok) {
-    return NextResponse.json(
-      { ok: false, step: "googleads_api", status: res.status, body: res.body },
-      { status: 500 }
-    );
-  }
-
-  const campaigns = res.rows.map((r: any) => {
-    const imp = Number(r.metrics?.impressions ?? 0);
-    const clk = Number(r.metrics?.clicks ?? 0);
-    const costEUR = Number(r.metrics?.costMicros ?? 0) / 1_000_000;
-    const conv = Number(r.metrics?.conversions ?? 0);
-    const convValue = Number(r.metrics?.conversionsValue ?? 0);
-
-    const ctr = imp > 0 ? (clk / imp) * 100 : 0;
-    const cpc = clk > 0 ? costEUR / clk : 0;
-    const roas = costEUR > 0 ? convValue / costEUR : 0;
-
-    return {
-      id: r.campaign?.id,
-      name: r.campaign?.name,
-      status: r.campaign?.status,
-      impressions: imp,
-      clicks: clk,
-      costEUR,
-      ctr,
-      cpc,
-      conversions: conv,
-      convValue,
-      roas,
-    };
-  });
-
-  const totals = campaigns.reduce(
-    (a: any, c: any) => {
-      a.impressions += c.impressions;
-      a.clicks += c.clicks;
-      a.costEUR += c.costEUR;
-      a.conversions += c.conversions;
-      a.convValue += c.convValue;
-      return a;
-    },
-    { impressions: 0, clicks: 0, costEUR: 0, conversions: 0, convValue: 0 }
-  );
-
-  totals.ctr = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
-  totals.cpc = totals.clicks > 0 ? totals.costEUR / totals.clicks : 0;
-  totals.roas = totals.costEUR > 0 ? totals.convValue / totals.costEUR : 0;
-  // Diagnostica: esistenza AdGroup/Ads (più compatibile di COUNT con searchStream)
-  let diagnostics: any = { adsCount: 0, adGroupsCount: 0, issues: [] as string[] };
-
-  // Query 1: esiste almeno un Ad Group?
-  const qAdGroups = `
-    SELECT ad_group.id
-    FROM ad_group
-    LIMIT 1
-  `;
-  const rAg = await gaql(qAdGroups);
-  if (!rAg.ok) {
-    diagnostics.issues.push("Diagnostica AdGroups non disponibile (permessi/GAQL).");
-  } else {
-    diagnostics.adGroupsCount = rAg.rows.length; // 0 oppure 1 (existence check)
-  }
-
-  // Query 2: esiste almeno un annuncio?
-  const qAds = `
-    SELECT ad_group_ad.ad.id
-    FROM ad_group_ad
-    LIMIT 1
-  `;
-  const rAds = await gaql(qAds);
-  if (!rAds.ok) {
-    diagnostics.issues.push("Diagnostica Ads non disponibile (permessi/GAQL).");
-  } else {
-    diagnostics.adsCount = rAds.rows.length; // 0 oppure 1
-  }
-
-  if (diagnostics.adGroupsCount === 0) diagnostics.issues.push("Nessun gruppo di annunci: crea almeno 1 Ad Group.");
-  if (diagnostics.adsCount === 0) diagnostics.issues.push("Nessun annuncio: la campagna non può erogare finché non crei almeno 1 annuncio.");
-
-  return NextResponse.json({
-    ok: true,
-    apiVersion: "v22",
-    customerId: CUSTOMER_ID,
-    loginCustomerId: LOGIN_CUSTOMER_ID || null,
-    range: { days, start: startYMD, end: endYMD },
-    totals,
-    campaignsCount: campaigns.length,
-    campaigns,
-    diagnostics,
-  });
 }
