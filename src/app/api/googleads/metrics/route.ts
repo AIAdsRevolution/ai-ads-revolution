@@ -6,12 +6,12 @@ function isoDate(d: Date) {
 
 export async function GET() {
   const env = process.env;
-  const CLIENT_ID = env.GOOGLE_ADS_CLIENT_ID;
-  const CLIENT_SECRET = env.GOOGLE_ADS_CLIENT_SECRET;
-  const REFRESH_TOKEN = env.GOOGLE_ADS_REFRESH_TOKEN;
-  const DEV_TOKEN = env.GOOGLE_ADS_DEVELOPER_TOKEN;
-  const CUSTOMER_ID = env.GOOGLE_ADS_CUSTOMER_ID;
-  const LOGIN_CUSTOMER_ID = env.GOOGLE_ADS_LOGIN_CUSTOMER_ID;
+  const CLIENT_ID = (env.GOOGLE_ADS_CLIENT_ID || "").trim();
+  const CLIENT_SECRET = (env.GOOGLE_ADS_CLIENT_SECRET || "").trim();
+  const REFRESH_TOKEN = (env.GOOGLE_ADS_REFRESH_TOKEN || "").trim();
+  const DEV_TOKEN = (env.GOOGLE_ADS_DEVELOPER_TOKEN || "").trim();
+  const CUSTOMER_ID = (env.GOOGLE_ADS_CUSTOMER_ID || "").trim();
+  const LOGIN_CUSTOMER_ID = (env.GOOGLE_ADS_LOGIN_CUSTOMER_ID || "").trim();
 
   if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN || !DEV_TOKEN || !CUSTOMER_ID || !LOGIN_CUSTOMER_ID) {
     return NextResponse.json({ ok: false, error: "Missing env vars" }, { status: 500 });
