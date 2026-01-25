@@ -12,11 +12,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "missing_email" }, { status: 400 });
     }
 
-    // Per ora: log (su Render lo vedi nei logs).
+    // In produzione su Render lo trovi nei Logs
     console.log("[LEAD]", { ts, email, message, source });
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: "exception", details: String(e?.message || e) }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: "exception", details: String(e?.message || e) },
+      { status: 500 }
+    );
   }
 }
