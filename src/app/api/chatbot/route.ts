@@ -56,12 +56,9 @@ ${issues ? "⚠️ Note:\n" + issues : ""}`;
       }
 
       return new Response(JSON.stringify({
-        reply: `⚠️ Non riesco ancora a leggere Google Ads (status ${res.status}).`,
+        reply: `⚠️ Google Ads collegato ma summary non disponibile (status ).`,
         debug: res.json
-      }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
     }
   } catch {}
   const {message} = body;
