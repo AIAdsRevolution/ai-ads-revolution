@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       "") || "";
 
     const q = userMsg.toLowerCase();
-    const wantsAds = ["google ads","googleads","campagne","campaign","metriche","performance","riepilogo","summary","kpi","click","impressions","cpc","ctr","spesa","costo","roas","conversioni","conversions"].some(k => q.includes(k));
+    const wantsAds = ["google ads","googleads","campagne","campaign","metriche","performance","riepilogo","summary","kpi","click","impressions","cpc","ctr","spesa","costo","roas","conversioni","conversions","ads"].some(k => q.includes(k));
 
     if (wantsAds) {
       const res = await fetchGoogleAdsSummary(baseUrl);
