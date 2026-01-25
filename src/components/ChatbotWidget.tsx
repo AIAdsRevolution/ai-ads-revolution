@@ -89,7 +89,20 @@ export default function ChatbotWidget() {
 
     setMessages((m) => [...m, { role: "user", content: msg }]);
 
-    const r = await callApi(msg);
+    // salva lead se email valida (opzionale)
+    if (email.trim() && emailOk) {
+      fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          message: msg,
+          source: typeof window !== "undefined" ? window.location.pathname : ""
+        }),
+      }).catch(() => {});
+    }
+
+const r = await callApi(msg);
 
     setMessages((m) => [...m, { role: "assistant", content: r.reply }]);
     setBusy(false);
