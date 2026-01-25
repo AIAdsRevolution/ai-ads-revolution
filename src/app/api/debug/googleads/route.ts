@@ -7,6 +7,11 @@ function mask(v?: string) {
 }
 
 export async function GET() {
+  // ✅ Blocca in produzione
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ ok: false }, { status: 404 });
+  }
+
   const env = process.env;
   return NextResponse.json({
     ok: true,
