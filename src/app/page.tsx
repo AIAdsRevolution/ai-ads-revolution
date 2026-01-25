@@ -1,108 +1,176 @@
-import KpiLivePreview from "@/components/KpiLivePreview";
 import Link from "next/link";
+import KpiLivePreview from "../components/KpiLivePreview";
+
+function Pill({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="pro-pill" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+      {children}
+    </span>
+  );
+}
+
+function Card({
+  title,
+  desc,
+  bullets,
+  href,
+  cta,
+}: {
+  title: string;
+  desc: string;
+  bullets: string[];
+  href: string;
+  cta: string;
+}) {
+  return (
+    <div className="pro-card" style={{ padding: 18 }}>
+      <div style={{ fontWeight: 900, letterSpacing: "-0.02em", fontSize: 16 }}>{title}</div>
+      <div style={{ color: "rgba(255,255,255,.70)", fontSize: 13, marginTop: 8, lineHeight: 1.5 }}>{desc}</div>
+      <ul style={{ marginTop: 12, paddingLeft: 18, color: "rgba(255,255,255,.78)", fontSize: 13, lineHeight: 1.6 }}>
+        {bullets.map((b) => (
+          <li key={b} style={{ marginBottom: 6 }}>{b}</li>
+        ))}
+      </ul>
+      <div style={{ marginTop: 14 }}>
+        <Link className="pro-btn" href={href}>{cta}</Link>
+      </div>
+    </div>
+  );
+}
 
 export default function HomePage() {
   return (
     <main>
-      <div className="pro-container" style={{ paddingTop: 22, paddingBottom: 54 }}>
-        {/* Top nav */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div className="pro-container" style={{ paddingTop: 18, paddingBottom: 70 }}>
+        {/* Top Bar (Amazon-like, futuristica) */}
+        <div
+          className="pro-card-flat"
+          style={{
+            padding: 14,
+            borderRadius: 18,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            position: "sticky",
+            top: 10,
+            zIndex: 10,
+            backdropFilter: "blur(10px)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 220 }}>
             <div
               className="pro-card-flat"
               style={{
-                width: 40,
-                height: 40,
+                width: 42,
+                height: 42,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 borderRadius: 14,
               }}
+              aria-label="AI Ads Revolution"
             >
-              <div style={{ width: 14, height: 14, borderRadius: 6, background: "rgba(37,99,235,.9)" }} />
+              <div style={{ width: 16, height: 16, borderRadius: 6, background: "rgba(37,99,235,.95)" }} />
             </div>
-            <div>
-              <div style={{ fontWeight: 900, letterSpacing: "-0.02em" }}>AI Ads Revolution</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,.65)", marginTop: 2 }}>
-                Motore neurale di advertising • decision log • realtime
+            <div style={{ lineHeight: 1.1 }}>
+              <div style={{ fontWeight: 950, letterSpacing: "-0.03em" }}>AI Ads Revolution</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,.60)", marginTop: 2 }}>
+                KPI + AI • Google Ads • Decision log
               </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          {/* Search */}
+          <div style={{ flex: 1, maxWidth: 560 }}>
+            <div
+              className="pro-card-flat"
+              style={{
+                padding: "10px 12px",
+                borderRadius: 16,
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                border: "1px solid rgba(255,255,255,.09)",
+              }}
+            >
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,.55)" }}>🔎</span>
+              <input
+                placeholder="Cerca: dashboard, Google Ads, report, demo…"
+                style={{
+                  width: "100%",
+                  outline: "none",
+                  border: "none",
+                  background: "transparent",
+                  color: "rgba(255,255,255,.90)",
+                  fontSize: 13,
+                }}
+              />
+              <Link className="pro-btn pro-btn-primary" href="/ai-chatbot" style={{ padding: "8px 10px" }}>
+                Chiedi all’AI
+              </Link>
+            </div>
+          </div>
+
+          {/* Nav */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
             <Link className="pro-pill" href="/come-funziona">Come funziona</Link>
-            <Link className="pro-pill" href="/ai-engine">AI Engine</Link>
-            <Link className="pro-pill" href="/pricing">Prezzi</Link>
+            <Link className="pro-pill" href="/pricing">Pricing</Link>
             <Link className="pro-pill" href="/status">Status</Link>
             <Link className="pro-btn" href="/login">Accedi</Link>
-            <Link className="pro-btn pro-btn-primary" href="/register">Registrati</Link>
+            <Link className="pro-btn pro-btn-primary" href="/register">Inizia</Link>
           </div>
         </div>
 
-        <div className="pro-divider" />
-
         {/* HERO */}
-        <div className="pro-grid-2" style={{ alignItems: "start" }}>
+        <div style={{ marginTop: 18 }} className="pro-grid-2">
           <div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
-              <span className="pro-pill">AI Neural Campaign Engine</span>
-              <span className="pro-pill">Realtime signals</span>
-              <span className="pro-pill">Meta-like UI</span>
-              <span className="pro-pill">Audit-ready</span>
+              <Pill>AI Neural Campaign Engine</Pill>
+              <Pill>Realtime KPI</Pill>
+              <Pill>Google Ads ready</Pill>
+              <Pill>Assistente clienti</Pill>
             </div>
 
             <h1 className="pro-h1">
-              Crea campagne che <span style={{ color: "rgba(156,192,255,.95)" }}>migliorano</span> da sole.
+              La tua dashboard KPI{" "}
+              <span style={{ color: "rgba(156,192,255,.95)" }}>in tempo reale</span>, con AI al tuo fianco.
             </h1>
 
             <p className="pro-sub">
-              Un motore neurale che rialloca budget, ottimizza creatività e bid in tempo reale.
-              Decision log trasparente e KPI misurabili. Progettato per crescere da startup a enterprise.
+              AI Ads Revolution unisce monitoraggio KPI e assistente AI per aiutarti a leggere i dati, capire cosa sta succedendo
+              e scegliere i prossimi step. Per metriche reali serve collegare Google Ads.
             </p>
 
             <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
-              <Link className="pro-btn pro-btn-primary" href="/register">Inizia ora</Link>
-              <Link className="pro-btn" href="/come-funziona">Guarda come funziona</Link>
+              <Link className="pro-btn pro-btn-primary" href="/ai-chatbot">Richiedi demo</Link>
+              <Link className="pro-btn" href="/dashboard">Vedi dashboard</Link>
             </div>
 
-            <div style={{ marginTop: 12, color: "rgba(255,255,255,.65)", fontSize: 13 }}>
-              Prova gratuita • Nessun lock-in • Setup veloce • Pensato anche per piccole imprese
+            <div style={{ marginTop: 12, color: "rgba(255,255,255,.60)", fontSize: 12, lineHeight: 1.5 }}>
+              Nota: non facciamo promesse “magiche”. I risultati dipendono da settore, budget, creatività e tracking.
             </div>
 
-            <div style={{ marginTop: 22 }} className="pro-kpi">
-              <div className="pro-kpi-card">
-                <div className="pro-kpi-label">Vendite medie attribuite (beta)</div>
-                <div className="pro-kpi-val pro-kpi-val-blue">+30%</div>
-              </div>
-              <div className="pro-kpi-card">
-                <div className="pro-kpi-label">ROAS medio (beta)</div>
-                <div className="pro-kpi-val pro-kpi-val-ai">4.7x</div>
-              </div>
-              <div className="pro-kpi-card">
-                <div className="pro-kpi-label">Riduzione CPC media</div>
-                <div className="pro-kpi-val">−25%</div>
-              </div>
-              <div className="pro-kpi-card">
-                <div className="pro-kpi-label">Setup iniziale</div>
-                <div className="pro-kpi-val">&lt; 5 min</div>
-              </div>
-            </div>
-
-            <div style={{ marginTop: 12, color: "rgba(255,255,255,.55)", fontSize: 12 }}>
-              *Valori indicativi su inserzionisti beta. I risultati medi non garantiscono performance future.
+            {/* Trust strip */}
+            <div style={{ marginTop: 20, display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <span className="pro-pill">Trasparenza: decision log</span>
+              <span className="pro-pill">Misurazione: KPI & trend</span>
+              <span className="pro-pill">Supporto: demo guidata</span>
             </div>
           </div>
 
-          {/* Right: mock dashboard card */}
+          {/* Right: preview panel */}
           <div className="pro-card" style={{ padding: 18, overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
               <div>
-                <div style={{ fontWeight: 800 }}><KpiLivePreview days={28} /></div>
+                <div style={{ fontWeight: 900, letterSpacing: "-0.02em" }}>
+                  KPI Preview (demo)
+                </div>
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,.65)", marginTop: 2 }}>
-                  AI Neural Campaign Engine • ultimi 28 giorni
+                  Esempio di riepilogo • ultimi 28 giorni
                 </div>
               </div>
-              <div className="pro-pill">
+              <div className="pro-pill" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                 <span style={{ width: 8, height: 8, borderRadius: 99, background: "rgba(34,197,94,.9)" }} />
                 AI ON
               </div>
@@ -110,106 +178,100 @@ export default function HomePage() {
 
             <div style={{ marginTop: 14 }} className="pro-card-flat">
               <div style={{ padding: 14 }}>
-                <div style={{ color: "rgba(255,255,255,.65)", fontSize: 12 }}>Trend AI</div>
-                <div style={{ height: 140, marginTop: 10, borderRadius: 14, border: "1px solid rgba(255,255,255,.08)", overflow: "hidden", background: "rgba(255,255,255,.03)" }}>
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      background:
-                        "radial-gradient(600px 200px at 20% 40%, rgba(37,99,235,.30), transparent 60%), radial-gradient(500px 220px at 80% 60%, rgba(34,211,238,.15), transparent 60%)",
-                      position: "relative",
-                    }}
-                  >
-                    <div style={{ position: "absolute", left: 16, bottom: 18, color: "rgba(255,255,255,.65)", fontSize: 12 }}>
-                      ROAS
-                    </div>
-                    <div style={{ position: "absolute", right: 16, top: 14, color: "rgba(255,255,255,.85)", fontWeight: 800 }}>
-                      0.0x
-                    </div>
-                  </div>
+                <div style={{ color: "rgba(255,255,255,.65)", fontSize: 12 }}>Preview KPI (simulata)</div>
+                <div style={{ marginTop: 10 }}>
+                  <KpiLivePreview days={28} />
                 </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 10, marginTop: 10 }}>
-                  <div className="pro-kpi-card" style={{ padding: 12 }}>
-                    <div className="pro-kpi-label">CTR medio</div>
-                    <div className="pro-kpi-val">0.0%</div>
-                  </div>
-                  <div className="pro-kpi-card" style={{ padding: 12 }}>
-                    <div className="pro-kpi-label">CPC medio</div>
-                    <div className="pro-kpi-val">€ 0.00</div>
-                  </div>
-                  <div className="pro-kpi-card" style={{ padding: 12 }}>
-                    <div className="pro-kpi-label">ROAS medio</div>
-                    <div className="pro-kpi-val">0.0x</div>
-                  </div>
-                  <div className="pro-kpi-card" style={{ padding: 12 }}>
-                    <div className="pro-kpi-label">AI Actions</div>
-                    <div className="pro-kpi-val">0</div>
-                  </div>
+                <div style={{ marginTop: 10, color: "rgba(255,255,255,.55)", fontSize: 12 }}>
+                  Collegando Google Ads, i KPI diventano reali.
                 </div>
+              </div>
+            </div>
 
-                <div style={{ marginTop: 10, color: "rgba(255,255,255,.58)", fontSize: 12 }}>
-                  Collega campagne reali per vedere KPI live. La dashboard è l’area dei dati dettagliati.
-                </div>
-
-                <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-                  <span className="pro-pill">Decision log</span>
-                  <span className="pro-pill">Budget shift</span>
-                  <span className="pro-pill">Creative AI</span>
+            <div style={{ marginTop: 14 }} className="pro-card-flat">
+              <div style={{ padding: 14 }}>
+                <div style={{ color: "rgba(255,255,255,.65)", fontSize: 12 }}>Cosa puoi chiedere all’assistente</div>
+                <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <span className="pro-pill">“Riepilogo 28 giorni”</span>
+                  <span className="pro-pill">“Come collegare Google Ads?”</span>
+                  <span className="pro-pill">“Quali KPI guardare?”</span>
+                  <span className="pro-pill">“Voglio una demo”</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="pro-divider" />
+        {/* Feature grid */}
+        <div className="pro-divider" style={{ marginTop: 22 }} />
 
-        {/* Features */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 14 }}>
-          {[
-            ["AI-first in ogni decisione", "Ogni asta, offerta e creatività viene valutata da segnali realtime."],
-            ["Decision log trasparente", "Sai cosa fa l’AI, perché lo fa e con quale impatto stimato."],
-            ["Realtime signals", "Reagisce ai cambiamenti del mercato mentre accadono."],
-            ["Scalabilità enterprise", "Inizi piccolo e cresci solo quando i dati lo confermano."],
-            ["Setup guidato", "La guida AI integrata ti mostra step-by-step come ottimizzare."],
-            ["Integrazioni", "Supabase + Google Ads: KPI reali, report, automazioni."],
-          ].map(([t, d]) => (
-            <div key={t} className="pro-card-flat" style={{ padding: 16 }}>
-              <div style={{ fontWeight: 850 }}>{t}</div>
-              <div style={{ marginTop: 8, color: "rgba(255,255,255,.65)", lineHeight: 1.55 }}>{d}</div>
-            </div>
-          ))}
+        <div style={{ marginTop: 18 }}>
+          <div style={{ fontWeight: 950, letterSpacing: "-0.03em", fontSize: 18 }}>Scopri cosa fa (davvero)</div>
+          <div style={{ color: "rgba(255,255,255,.65)", fontSize: 13, marginTop: 6 }}>
+            Un approccio pratico: KPI chiari, integrazione Google Ads, assistente AI per spiegare e guidare.
+          </div>
+
+          <div className="pro-grid-3" style={{ marginTop: 14 }}>
+            <Card
+              title="Dashboard KPI Live"
+              desc="Visualizza trend e metriche chiave in un’unica dashboard."
+              bullets={[
+                "Panoramica KPI e andamento",
+                "Indicatori chiave per decisioni rapide",
+                "Vista demo o dati reali (con Google Ads)",
+              ]}
+              href="/dashboard"
+              cta="Apri dashboard"
+            />
+
+            <Card
+              title="Google Ads Integration"
+              desc="Collega l’account per ottenere metriche reali e riepiloghi periodici."
+              bullets={[
+                "Collegamento account Google",
+                "Summary e metriche reali",
+                "Base per report e insight AI",
+              ]}
+              href="/settings/google-ads"
+              cta="Collega Google Ads"
+            />
+
+            <Card
+              title="AI Assistant (Customer + Marketing)"
+              desc="Chiedi spiegazioni, prossimi step e supporto per la demo."
+              bullets={[
+                "Risposte chiare e operative",
+                "Raccoglie lead per la demo (email)",
+                "Escalation quando serve supporto umano",
+              ]}
+              href="/ai-chatbot"
+              cta="Parla con l’AI"
+            />
+          </div>
         </div>
 
-        <div className="pro-divider" />
-
-        {/* CTA */}
-        <div className="pro-card" style={{ padding: 18 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        {/* Bottom CTA */}
+        <div style={{ marginTop: 26 }} className="pro-card">
+          <div className="pro-grid-2" style={{ alignItems: "center", padding: 18 }}>
             <div>
-              <div style={{ fontWeight: 900, fontSize: 20 }}>Inizia oggi con AI Ads Revolution</div>
-              <div style={{ marginTop: 6, color: "rgba(255,255,255,.65)" }}>
-                Setup rapido, prova gratuita e controllo totale sulle ottimizzazioni AI.
+              <div style={{ fontWeight: 950, letterSpacing: "-0.03em", fontSize: 18 }}>Vuoi una demo guidata?</div>
+              <div style={{ color: "rgba(255,255,255,.70)", fontSize: 13, marginTop: 6, lineHeight: 1.5 }}>
+                Scrivi in chat cosa vuoi ottenere (lead, vendite, traffico) e lascia la tua email: ti contattiamo per una demo.
               </div>
             </div>
-            <div style={{ display: "flex", gap: 10 }}>
-              <Link className="pro-btn pro-btn-primary" href="/register">Crea un account</Link>
-              <Link className="pro-btn" href="/dashboard">Accedi alla dashboard</Link>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", flexWrap: "wrap" }}>
+              <Link className="pro-btn" href="/come-funziona">Come funziona</Link>
+              <Link className="pro-btn pro-btn-primary" href="/ai-chatbot">Richiedi demo</Link>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div style={{ marginTop: 30, display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", color: "rgba(255,255,255,.55)", fontSize: 13 }}>
-          <div>© 2025 AI Ads Revolution. Tutti i diritti riservati.</div>
-          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-            <Link href="/chi-siamo">Chi siamo</Link>
-            <Link href="/privacy">Privacy</Link>
-            <Link href="/termini">Termini</Link>
-            <Link href="/cookie">Cookie</Link>
-            <Link href="/status">Status</Link>
-          </div>
+        <div style={{ marginTop: 22, color: "rgba(255,255,255,.50)", fontSize: 12, display: "flex", gap: 14, flexWrap: "wrap" }}>
+          <Link href="/privacy" className="pro-pill">Privacy</Link>
+          <Link href="/termini" className="pro-pill">Termini</Link>
+          <Link href="/cookie" className="pro-pill">Cookie</Link>
+          <span style={{ opacity: 0.8 }}>© {new Date().getFullYear()} AI Ads Revolution</span>
         </div>
       </div>
     </main>
