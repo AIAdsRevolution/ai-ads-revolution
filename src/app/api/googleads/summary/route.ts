@@ -17,7 +17,9 @@ export async function GET(req: Request) {
     const days = [7, 14, 28, 90].includes(daysRaw) ? daysRaw : 28;
 
     // Fonte unica: /api/googleads/metrics (già ok online+local)
-    const r = await fetch(`${baseUrl}/api/googleads/metrics`, { cache: "no-store" });
+    const url = new URL(req.url);
+    const origin = `${url.protocol}//${url.host}`;
+    const r = await fetch(`${origin}/api/googleads/metrics`, { cache: "no-store" });
     const j: any = await r.json().catch(() => null);
 
     if (!r.ok || !j?.ok) {
