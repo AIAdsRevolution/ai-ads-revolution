@@ -24,7 +24,12 @@ export async function GET(req: Request) {
 
     // Fonte unica: /api/googleads/metrics (già ok online+local)
     const url = new URL(req.url);
-    const origin = `${url.protocol}//${url.host}`;
+
+    // ✅ In produzione su Render evita Cloudflare: chiama localhost interno
+    const isLocal = url.host.includes("localhost") || url.host.includes("127.0.0.1");
+    const port = process.env.PORT || "10000";
+    const origin = isLocal ? `${url.protocol}//${url.host}` : `http://127.0.0.1:${port}`;
+
     let r: Response;
     try {
       r = await fetchWithTimeout(`${origin}/api/googleads/metrics`, 8000);
