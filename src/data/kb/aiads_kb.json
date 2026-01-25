@@ -1,0 +1,28 @@
+{
+  "brand": "AI Ads Revolution",
+  "value_prop": [
+    "Dashboard KPI + AI per analizzare e migliorare le campagne advertising",
+    "Assistente clienti e marketing per report, insight e prossimi step"
+  ],
+  "features": [
+    "KPI live dashboard",
+    "Integrazione Google Ads (summary/metrics)",
+    "Assistente AI per report e raccomandazioni"
+  ],
+  "demo": {
+    "cta": "Richiedi una demo",
+    "note": "Lascia email in chat e ti contattiamo"
+  },
+  "faq": [
+    { "q": "Cos'è AI Ads Revolution?", "a": "È una piattaforma che unisce dashboard KPI e AI per analizzare e ottimizzare campagne pubblicitarie." },
+    { "q": "Serve collegare Google Ads?", "a": "Sì, per vedere metriche reali serve collegare l’account Google Ads." }
+  ],
+  "handoff": {
+    "when": [
+      "permessi o login Google",
+      "errori persistenti API",
+      "richiesta enterprise/contratto"
+    ],
+    "message": "Posso passare la richiesta al team. Lasciami email e cosa stavi facendo."
+  }
+}
