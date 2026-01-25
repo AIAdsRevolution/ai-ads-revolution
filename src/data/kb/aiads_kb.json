@@ -1,28 +1,56 @@
 {
   "brand": "AI Ads Revolution",
+  "tone": {
+    "style": "premium, chiaro, concreto",
+    "language": "it",
+    "rules": [
+      "Non inventare prezzi, trial, promesse o integrazioni non presenti.",
+      "Se mancano dati: fai 1 domanda mirata.",
+      "Se serve intervento umano: chiedi email e descrizione, poi proponi handoff."
+    ]
+  },
   "value_prop": [
-    "Dashboard KPI + AI per analizzare e migliorare le campagne advertising",
-    "Assistente clienti e marketing per report, insight e prossimi step"
+    "Dashboard KPI per monitorare performance campagne",
+    "Integrazione Google Ads per metriche reali e riepiloghi",
+    "Assistente AI per insight e suggerimenti operativi"
   ],
   "features": [
-    "KPI live dashboard",
-    "Integrazione Google Ads (summary/metrics)",
-    "Assistente AI per report e raccomandazioni"
+    {
+      "title": "Dashboard KPI Live",
+      "bullets": ["Panoramica metriche", "Trend e confronto periodo", "Focus su ROI e spesa"]
+    },
+    {
+      "title": "Google Ads Integration",
+      "bullets": ["Collegamento account", "Metriche reali", "Summary periodo (es. ultimi 28 giorni)"]
+    },
+    {
+      "title": "AI Assistant",
+      "bullets": ["Spiega i dati", "Suggerisce azioni", "Aiuta a interpretare risultati"]
+    }
   ],
   "demo": {
     "cta": "Richiedi una demo",
-    "note": "Lascia email in chat e ti contattiamo"
+    "how": "Scrivi qui la tua email e il tuo obiettivo (es. lead, vendite, traffico). Ti contattiamo per una demo guidata.",
+    "privacy_note": "Useremo l’email solo per organizzare la demo e supporto."
+  },
+  "pricing": {
+    "policy": "I piani e i prezzi sono indicati nella pagina Pricing (se disponibile). Se vuoi, dimmi la tua esigenza e ti indirizzo al piano più adatto."
+  },
+  "trial": {
+    "policy": "La prova gratuita non è dichiarata nella knowledge base. Possiamo comunque offrirti una demo guidata."
   },
   "faq": [
     { "q": "Cos'è AI Ads Revolution?", "a": "È una piattaforma che unisce dashboard KPI e AI per analizzare e ottimizzare campagne pubblicitarie." },
-    { "q": "Serve collegare Google Ads?", "a": "Sì, per vedere metriche reali serve collegare l’account Google Ads." }
+    { "q": "Serve collegare Google Ads?", "a": "Sì, per vedere metriche reali serve collegare l’account Google Ads." },
+    { "q": "Posso avere un riepilogo ultimi 28 giorni?", "a": "Sì, dopo il collegamento dell’account Google Ads possiamo mostrare un riepilogo e metriche reali del periodo." }
   ],
   "handoff": {
     "when": [
-      "permessi o login Google",
-      "errori persistenti API",
-      "richiesta enterprise/contratto"
+      "Problemi di login/permessi Google",
+      "Errori API persistenti",
+      "Richieste enterprise o contratti",
+      "Integrazioni personalizzate"
     ],
-    "message": "Posso passare la richiesta al team. Lasciami email e cosa stavi facendo."
+    "message": "Posso passare la richiesta al team. Lasciami email + cosa stavi facendo + screenshot/errore (se c’è)."
   }
 }
