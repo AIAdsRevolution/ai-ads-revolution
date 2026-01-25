@@ -1,120 +1,64 @@
 import { NextResponse } from "next/server";
+import { SYSTEM_PROMPT } from "@/lib/chatbot/systemPrompt";
+import kb from "@/data/kb/aiads_kb.json";
 
-async function fetchGoogleAdsSummary(baseUrl: string) {
-  const r = await fetch(`${baseUrl}/api/googleads/summary`, { cache: "no-store" });
-  const j = await r.json().catch(() => null);
-  return { ok: r.ok, status: r.status, json: j };
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+function compactKB() {
+  return JSON.stringify({
+    brand: (kb as any).brand,
+    value_prop: (kb as any).value_prop,
+    features: (kb as any).features,
+    demo: (kb as any).demo,
+    faq: (kb as any).faq,
+    handoff: (kb as any).handoff
+  });
 }
-
-
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await req.json().catch(() => ({} as any));
+    const message = String((body as any)?.message || "").trim();
 
-  // GOOGLE ADS SUMMARY (AUTO_V2): risposta reale se l'utente chiede metriche/campagne
-  try {
-    const url = new URL(req.url);
-    const baseUrl = `${url.protocol}//${url.host}`;
-
-    const userMsg =
-      (typeof (body as any)?.message === "string" ? (body as any).message :
-      typeof (body as any)?.text === "string" ? (body as any).text :
-      typeof (body as any)?.prompt === "string" ? (body as any).prompt :
-      "") || "";
-
-    const q = userMsg.toLowerCase();
-    const wantsAds = ["google ads","googleads","campagne","campaign","metriche","performance","riepilogo","summary","kpi","click","impressions","cpc","ctr","spesa","costo","roas","conversioni","conversions","ads"].some(k => q.includes(k));
-
-    if (wantsAds) {
-      const res = await fetchGoogleAdsSummary(baseUrl);
-
-      if (res.ok && res.json?.ok) {
-        const sum = res.json;
-
-        const top = (sum.campaigns || []).slice(0, 5).map((c: any) =>
-          `• ${c.name} (${c.status}) — imp ${c.impressions}, click ${c.clicks}, costo €${Number(c.costEUR ?? 0).toFixed(2)}`
-        ).join("\n");
-
-        const issues = (sum.diagnostics?.issues || []).map((x: string) => `• ${x}`).join("\n");
-
-        const reply =
-`📊 Google Ads (ultimi ${sum.range?.days ?? 28} giorni)
-Totali: impression ${sum.totals?.impressions ?? 0}, click ${sum.totals?.clicks ?? 0}, costo €${Number(sum.totals?.costEUR ?? 0).toFixed(2)}
-
-Campagne (${sum.campaignsCount ?? 0}):
-${top || "• Nessuna campagna trovata"}
-
-${issues ? "⚠️ Note:\n" + issues : ""}`;
-
-        return new Response(JSON.stringify({ reply }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      return new Response(JSON.stringify({
-        reply: `⚠️ Google Ads collegato ma summary non disponibile (status ).`,
-        debug: res.json
-      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    if (!message) {
+      return NextResponse.json({ ok: false, error: "missing_message" }, { status: 400 });
     }
-  } catch {}
-  const {message} = body;
-
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json(
-        { reply: "Configurazione AI non disponibile." },
-        { status: 500 }
-      );
+    if (!OPENAI_API_KEY) {
+      return NextResponse.json({ ok: false, error: "missing_openai_key" }, { status: 500 });
     }
 
-    const model = process.env.OPENAI_MODEL || "gpt-4o";
+    const kbText = compactKB();
 
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: "system",
-            content:
-              "Sei il chatbot ufficiale di AI Ads Revolution. Rispondi in modo chiaro, professionale e orientato al business su piani, prezzi, campagne advertising e funzionamento della piattaforma.",
-          },
-          {
-            role: "user",
-            content: String(message || ""),
-          },
-        ],
+        model: "gpt-4.1-mini",
         temperature: 0.4,
-        max_tokens: 500,
-      }),
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: `KNOWLEDGE_BASE:${kbText}` },
+          { role: "user", content: message }
+        ]
+      })
     });
 
-    if (!openaiRes.ok) {
-      console.error("[CHATBOT] OpenAI error:", openaiRes.status);
+    if (!r.ok) {
+      const errText = await r.text().catch(() => "");
       return NextResponse.json(
-        { reply: "Errore temporaneo del servizio AI. Riprova tra poco." },
-        { status: 500 }
+        { ok: false, error: "openai_error", details: errText.slice(0, 300) },
+        { status: 502 }
       );
     }
 
-    const data = await openaiRes.json();
-    const reply =
-      data?.choices?.[0]?.message?.content ||
-      "Al momento non riesco a rispondere. Riprova tra poco.";
+    const data = await r.json();
+    const reply = data?.choices?.[0]?.message?.content?.trim() || "Non sono riuscito a generare la risposta.";
 
-    return NextResponse.json({ reply });
-  } catch (err) {
-    console.error("[CHATBOT] Errore generale:", err);
-    return NextResponse.json(
-      { reply: "Errore interno del chatbot. Riprova tra poco." },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: true, version: "chatbot_v2_app_router", reply });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: "exception", details: String(e?.message || e) }, { status: 500 });
   }
 }
