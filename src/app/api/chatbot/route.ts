@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { SYSTEM_PROMPT } from "../../../../lib/chatbot/systemPrompt";
-import kb from "../../../../data/kb/aiads_kb.json";
+import { SYSTEM_PROMPT } from "../../../lib/chatbot/systemPrompt";
+import kb from "../../../data/kb/aiads_kb.json";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
