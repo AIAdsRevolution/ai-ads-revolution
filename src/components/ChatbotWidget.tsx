@@ -2,256 +2,300 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-type Msg = { from: "user" | "bot"; text: string };
+type Msg = { role: "assistant" | "user"; content: string };
+
+const QUICK_ACTIONS: { label: string; message: string }[] = [
+  { label: "Richiedi demo", message: "Vorrei una demo. Come funziona?" },
+  { label: "Collega Google Ads", message: "Come collego Google Ads passo-passo?" },
+  { label: "Riepilogo 28 giorni", message: "Google Ads summary ultimi 28 giorni" },
+];
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+}
 
 export default function ChatbotWidget() {
   const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+
   const [messages, setMessages] = useState<Msg[]>([
-    { from: "bot", text: "Ciao 👋 Sono l’assistente AI Ads Revolution. Come posso aiutarti?" },
+    {
+      role: "assistant",
+      content:
+        "Ciao 👋 Sono l’assistente AI Ads Revolution.\nVuoi una demo, info su Google Ads o supporto tecnico?",
+    },
   ]);
+
   const [input, setInput] = useState("");
-  const listRef = useRef<HTMLDivElement | null>(null);
+  const [email, setEmail] = useState("");
+  const [emailTouched, setEmailTouched] = useState(false);
+
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
+  const emailOk = useMemo(() => (email.trim() ? isValidEmail(email) : true), [email]);
+  const canSend = useMemo(() => input.trim().length > 0 && !busy, [input, busy]);
 
   useEffect(() => {
     if (!open) return;
-    setTimeout(() => listRef.current?.scrollTo({ top: 999999, behavior: "smooth" }), 50);
+    setTimeout(() => {
+      scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
+    }, 50);
   }, [open, messages.length]);
 
-  const quickLinks = useMemo(
-    () => [
-      { title: "Piani e prezzi", subtitle: "Scopri i pacchetti", action: () => pushBot("Vuoi vedere i piani e prezzi?") },
-      { title: "Come funziona", subtitle: "Guida rapida", action: () => pushBot("Ti spiego come funziona AI Ads Revolution.") },
-      { title: "Supporto tecnico", subtitle: "Problemi e soluzioni", action: () => pushBot("Dimmi che problema hai e lo risolviamo.") },
-    ],
-    []
-  );
+  async function callApi(userMessage: string) {
+    const payload = {
+      message: email.trim()
+        ? `${userMessage}\n\n[LEAD_EMAIL]: ${email.trim()}`
+        : userMessage,
+    };
 
-  function pushBot(text: string) {
-    setMessages((prev) => [...prev, { from: "bot", text }]);
-    if (!open) setOpen(true);
+    const res = await fetch("/api/chatbot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok || !data) {
+      return { ok: false, reply: "Errore di rete. Riprova tra poco." };
+    }
+    if (data.ok === false) {
+      return {
+        ok: false,
+        reply:
+          "Servizio AI momentaneamente non disponibile. Se vuoi, lascia la tua email e ti contattiamo per una demo.",
+      };
+    }
+    return { ok: true, reply: String(data.reply || "").trim() || "Ok." };
   }
 
-  function send() {
-    const v = input.trim();
-    if (!v) return;
-    setMessages((prev) => [...prev, { from: "user", text: v }]);
-    setInput("");
+  async function send(text?: string) {
+    const msg = (text ?? input).trim();
+    if (!msg || busy) return;
 
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          from: "bot",
-          text:
-            "Ricevuto ✅. Collegami l’AI e ti rispondo in tempo reale (API). Intanto dimmi: vuoi piani, campagne o integrazione Google Ads?",
-        },
+    // Se l'utente ha scritto l'email nel campo, validiamola
+    setEmailTouched(true);
+    if (!emailOk) {
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", content: "L’email sembra non valida. Puoi ricontrollarla?" },
       ]);
-    }, 450);
+      return;
+    }
+
+    setInput("");
+    setBusy(true);
+
+    setMessages((m) => [...m, { role: "user", content: msg }]);
+
+    const r = await callApi(msg);
+
+    setMessages((m) => [...m, { role: "assistant", content: r.reply }]);
+    setBusy(false);
   }
 
   return (
     <>
+      {/* Launcher */}
       <button
-        aria-label="Apri chat assistenza"
         onClick={() => setOpen((v) => !v)}
+        aria-label="Apri chat assistenza"
         style={{
           position: "fixed",
-          right: 22,
-          bottom: 22,
-          width: 64,
-          height: 64,
+          right: 18,
+          bottom: 18,
+          width: 56,
+          height: 56,
           borderRadius: 999,
-          border: "none",
-          cursor: "pointer",
-          zIndex: 999999,
-          padding: 0,
-          background: "transparent",
+          border: "1px solid rgba(255,255,255,.14)",
+          background:
+            "radial-gradient(120px 120px at 30% 30%, rgba(120,170,255,.55), rgba(20,30,60,.95))",
+          boxShadow: "0 20px 60px rgba(0,0,0,.45)",
+          color: "white",
+          fontWeight: 800,
+          zIndex: 9999,
         }}
       >
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            borderRadius: 999,
-            padding: 4,
-            background:
-              "conic-gradient(from 180deg, #ff4d4d, #ff7a18, #ffdd00, #8fff6a, #2dd4ff, #6366f1, #a855f7, #ff4d4d)",
-            boxShadow: "0 18px 45px rgba(0,0,0,.25)",
-          }}
-        >
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              borderRadius: 999,
-              background: "#ffffff",
-              display: "grid",
-              placeItems: "center",
-              border: "1px solid rgba(15,23,42,.08)",
-            }}
-          >
-            <svg width="34" height="34" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-              <circle cx="32" cy="32" r="26" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="2" />
-              <circle cx="24" cy="28" r="3.4" fill="#0F172A" />
-              <circle cx="40" cy="28" r="3.4" fill="#0F172A" />
-              <path
-                d="M22 40c3.2 4 7 6 10 6s6.8-2 10-6"
-                stroke="#0F172A"
-                strokeWidth="3.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-        </div>
+        🙂
       </button>
 
+      {/* Panel */}
       {open && (
         <div
           style={{
             position: "fixed",
-            right: 22,
-            bottom: 96,
+            right: 18,
+            bottom: 86,
             width: 380,
-            height: 540,
+            maxWidth: "calc(100vw - 36px)",
             borderRadius: 18,
-            background: "#ffffff",
-            border: "1px solid rgba(15,23,42,.10)",
-            boxShadow: "0 28px 80px rgba(2,6,23,.22)",
+            border: "1px solid rgba(255,255,255,.12)",
+            background: "rgba(10,14,26,.92)",
+            backdropFilter: "blur(14px)",
+            boxShadow: "0 24px 90px rgba(0,0,0,.55)",
             overflow: "hidden",
-            zIndex: 999999,
-            display: "flex",
-            flexDirection: "column",
+            zIndex: 9999,
           }}
         >
+          {/* Header */}
           <div
             style={{
-              padding: "14px 14px",
-              borderBottom: "1px solid rgba(15,23,42,.08)",
+              padding: "12px 12px",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              background:
-                "linear-gradient(90deg, rgba(255,77,77,.12), rgba(99,102,241,.10), rgba(45,212,255,.10))",
+              gap: 10,
+              borderBottom: "1px solid rgba(255,255,255,.10)",
+              background: "rgba(255,255,255,.03)",
             }}
           >
-            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div
                 style={{
                   width: 34,
                   height: 34,
                   borderRadius: 999,
-                  background: "linear-gradient(135deg, #ff4d4d, #ff7a18, #6366f1)",
-                  display: "grid",
-                  placeItems: "center",
-                  color: "white",
-                  fontWeight: 800,
-                  fontFamily: "ui-sans-serif, system-ui",
-                  letterSpacing: 0.3,
+                  background: "rgba(255,140,60,.95)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 900,
                 }}
               >
                 AI
               </div>
               <div style={{ lineHeight: 1.1 }}>
-                <div style={{ fontWeight: 800, color: "#0F172A" }}>Assistenza</div>
-                <div style={{ fontSize: 12, color: "#475569" }}>AI Ads Revolution</div>
+                <div style={{ fontWeight: 900 }}>Assistenza</div>
+                <div style={{ fontSize: 12, opacity: 0.7 }}>AI Ads Revolution</div>
               </div>
             </div>
-
             <button
               onClick={() => setOpen(false)}
-              style={{
-                border: "none",
-                background: "rgba(15,23,42,.06)",
-                borderRadius: 10,
-                padding: "8px 10px",
-                cursor: "pointer",
-                color: "#0F172A",
-                fontWeight: 700,
-              }}
               aria-label="Chiudi"
-              title="Chiudi"
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 12,
+                border: "1px solid rgba(255,255,255,.14)",
+                background: "rgba(255,255,255,.04)",
+                color: "white",
+                fontWeight: 900,
+              }}
             >
               ✕
             </button>
           </div>
 
-          <div style={{ padding: 12, display: "grid", gap: 10 }}>
-            {quickLinks.map((x) => (
+          {/* Quick actions */}
+          <div style={{ padding: 12, display: "grid", gap: 8 }}>
+            {QUICK_ACTIONS.map((a) => (
               <button
-                key={x.title}
-                onClick={x.action}
+                key={a.label}
+                onClick={() => send(a.message)}
                 style={{
                   textAlign: "left",
-                  border: "1px solid rgba(15,23,42,.10)",
-                  background: "#fff",
+                  padding: "10px 12px",
                   borderRadius: 14,
-                  padding: "12px 12px",
-                  cursor: "pointer",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  boxShadow: "0 10px 25px rgba(2,6,23,.06)",
+                  border: "1px solid rgba(255,255,255,.12)",
+                  background: "rgba(255,255,255,.04)",
+                  color: "rgba(255,255,255,.92)",
+                  fontWeight: 800,
                 }}
               >
-                <div>
-                  <div style={{ fontWeight: 800, color: "#0F172A" }}>{x.title}</div>
-                  <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>{x.subtitle}</div>
+                {a.label}
+                <div style={{ fontSize: 12, opacity: 0.7, fontWeight: 600, marginTop: 2 }}>
+                  {a.message}
                 </div>
-                <div style={{ color: "#2563EB", fontWeight: 900, fontSize: 18 }}>›</div>
               </button>
             ))}
           </div>
 
+          {/* Email field */}
+          <div style={{ padding: "0 12px 12px 12px" }}>
+            <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>
+              Email (opzionale) per demo/contatto:
+            </div>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => setEmailTouched(true)}
+              placeholder="nome@azienda.com"
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: 14,
+                border: `1px solid ${
+                  !emailOk && emailTouched ? "rgba(255,80,80,.65)" : "rgba(255,255,255,.12)"
+                }`,
+                background: "rgba(0,0,0,.18)",
+                color: "white",
+                outline: "none",
+              }}
+            />
+            {!emailOk && emailTouched && (
+              <div style={{ color: "rgba(255,120,120,.95)", fontSize: 12, marginTop: 6 }}>
+                Email non valida.
+              </div>
+            )}
+          </div>
+
+          {/* Messages */}
           <div
-            ref={listRef}
+            ref={scrollerRef}
             style={{
-              flex: 1,
-              padding: 12,
-              overflowY: "auto",
-              background: "linear-gradient(#ffffff, #ffffff, #f8fafc)",
-              borderTop: "1px solid rgba(15,23,42,.06)",
+              padding: "0 12px 12px 12px",
+              maxHeight: 260,
+              overflow: "auto",
+              display: "grid",
+              gap: 10,
             }}
           >
             {messages.map((m, i) => (
               <div
                 key={i}
                 style={{
-                  display: "flex",
-                  justifyContent: m.from === "user" ? "flex-end" : "flex-start",
-                  marginBottom: 10,
+                  justifySelf: m.role === "user" ? "end" : "start",
+                  maxWidth: "92%",
+                  padding: "10px 12px",
+                  borderRadius: 16,
+                  border: "1px solid rgba(255,255,255,.10)",
+                  background: m.role === "user" ? "rgba(120,170,255,.18)" : "rgba(255,255,255,.05)",
+                  color: "rgba(255,255,255,.92)",
+                  whiteSpace: "pre-wrap",
+                  fontSize: 13,
+                  lineHeight: 1.45,
                 }}
               >
-                <div
-                  style={{
-                    maxWidth: "78%",
-                    borderRadius: 16,
-                    padding: "10px 12px",
-                    fontSize: 14,
-                    lineHeight: 1.35,
-                    background: m.from === "user" ? "#2563EB" : "#ffffff",
-                    color: m.from === "user" ? "#ffffff" : "#0F172A",
-                    border:
-                      m.from === "user"
-                        ? "1px solid rgba(37,99,235,.35)"
-                        : "1px solid rgba(15,23,42,.10)",
-                    boxShadow: "0 10px 25px rgba(2,6,23,.06)",
-                    whiteSpace: "pre-wrap",
-                  }}
-                >
-                  {m.text}
-                </div>
+                {m.content}
               </div>
             ))}
+            {busy && (
+              <div
+                style={{
+                  justifySelf: "start",
+                  maxWidth: "92%",
+                  padding: "10px 12px",
+                  borderRadius: 16,
+                  border: "1px solid rgba(255,255,255,.10)",
+                  background: "rgba(255,255,255,.05)",
+                  color: "rgba(255,255,255,.78)",
+                  fontSize: 13,
+                }}
+              >
+                Sto analizzando…
+              </div>
+            )}
           </div>
 
+          {/* Input */}
           <div
             style={{
               padding: 12,
-              borderTop: "1px solid rgba(15,23,42,.08)",
+              borderTop: "1px solid rgba(255,255,255,.10)",
               display: "flex",
-              gap: 8,
-              background: "#ffffff",
+              gap: 10,
+              alignItems: "center",
             }}
           >
             <input
@@ -260,24 +304,28 @@ export default function ChatbotWidget() {
               onKeyDown={(e) => e.key === "Enter" && send()}
               placeholder="Scrivi un messaggio…"
               style={{
-                flex: 1,
-                borderRadius: 12,
-                border: "1px solid rgba(15,23,42,.14)",
-                padding: "12px 12px",
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: 14,
+                border: "1px solid rgba(255,255,255,.12)",
+                background: "rgba(0,0,0,.18)",
+                color: "white",
                 outline: "none",
-                fontSize: 14,
               }}
             />
             <button
-              onClick={send}
+              onClick={() => send()}
+              disabled={!canSend || (!emailOk && emailTouched)}
               style={{
-                border: "none",
-                borderRadius: 12,
-                padding: "0 14px",
-                cursor: "pointer",
-                background: "linear-gradient(135deg, #2563EB, #6366F1)",
+                padding: "10px 14px",
+                borderRadius: 14,
+                border: "1px solid rgba(255,255,255,.12)",
+                background:
+                  "linear-gradient(180deg, rgba(120,170,255,0.95) 0%, rgba(80,120,255,0.85) 100%)",
                 color: "white",
-                fontWeight: 800,
+                fontWeight: 900,
+                opacity: !canSend || (!emailOk && emailTouched) ? 0.5 : 1,
+                cursor: !canSend ? "not-allowed" : "pointer",
               }}
             >
               Invia
