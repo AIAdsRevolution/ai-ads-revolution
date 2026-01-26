@@ -1,5 +1,14 @@
+
+function detectLang(msg: string, source = "") {
+  const itHints = ["che", "come", "quanto", "prezzi", "piani", "demo", "funziona", "vendite", "traffico"];
+  const m = msg.toLowerCase();
+  if (source.startsWith("/en")) return "en";
+  if (source.startsWith("/it")) return "it";
+  return itHints.some(w => m.includes(w)) ? "it" : "en";
+}
+
 import { NextResponse } from "next/server";
-import { SYSTEM_PROMPT } from "../../../lib/chatbot/systemPrompt";
+import { `${SYSTEM_PROMPT}\n\nRispondi in lingua: ${lang === 'it' ? 'italiano' : 'inglese'}.` } from "../../../lib/chatbot/systemPrompt";
 import kb from "../../../data/kb/aiads_kb.json";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -19,6 +28,8 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({} as any));
     const message = String((body as any)?.message || "").trim();
+    const source = String((body as any)?.source || "").trim();
+    const lang = detectLang(message, source);
 
     if (!message) {
       return NextResponse.json({ ok: false, error: "missing_message" }, { status: 400 });
@@ -39,7 +50,7 @@ export async function POST(req: Request) {
         model: "gpt-4.1-mini",
         temperature: 0.4,
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: `${SYSTEM_PROMPT}\n\nRispondi in lingua: ${lang === 'it' ? 'italiano' : 'inglese'}.` },
           { role: "system", content: `KNOWLEDGE_BASE:${kbText}` },
           { role: "user", content: message }
         ]
