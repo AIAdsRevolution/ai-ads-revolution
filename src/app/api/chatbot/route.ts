@@ -3,70 +3,67 @@ import OpenAI from "openai";
 import kb from "../../../data/kb/aiads_kb.json";
 import { SYSTEM_PROMPT } from "../../../lib/chatbot/systemPrompt";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+});
 
-function detectLangFromRequest(req: Request): "it" | "en" {
+function detectLang(req: Request) {
   const al = (req.headers.get("accept-language") || "").toLowerCase();
-  if (al.startsWith("it") || al.includes("it")) return "it";
-  return "en";
+  return al.startsWith("it") || al.includes("it") ? "it" : "en";
 }
 
 function compactKB() {
-  return {
-    brand: (kb as any).brand,
-    value_prop: (kb as any).value_prop,
-    features: (kb as any).features,
-    demo: (kb as any).demo,
-    faq: (kb as any).faq,
-    handoff: (kb as any).handoff,
-  };
+  return JSON.stringify({
+    brand: kb.brand,
+    value_prop: kb.value_prop,
+    features: kb.features,
+    demo: kb.demo,
+    faq: kb.faq,
+  });
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({} as any));
+    const body = await req.json();
     const message = String(body?.message || "").trim();
-
     if (!message) {
-      return NextResponse.json({ ok: false, error: "missing_message" }, { status: 400 });
+      return NextResponse.json({ ok: false, error: "missing_message" }, { 
+status: 400 });
     }
 
-    const lang = detectLangFromRequest(req);
+    const lang = detectLang(req);
 
-    const systemPromptFinal =
+    const systemPrompt =
       SYSTEM_PROMPT +
-      "\n\nRispondi esclusivamente in lingua: " +
-      (lang === "it" ? "italiano." : "inglese.");
+      "\n\nKnowledge base:\n" +
+      compactKB() +
+      "\n\nRispondi in lingua: " +
+      (lang === "it" ? "italiano" : "inglese");
 
-    const completion = await openai.chat.completions.create({
+    const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: systemPromptFinal },
-        { role: "user", content: message + "\n\nContesto:\n" + JSON.stringify(compactKB()) },
+        { role: "system", content: systemPrompt },
+        { role: "user", content: message },
       ],
-      temperature: 0.3,
+      temperature: 0.4,
     });
-
-    const reply =
-      completion.choices[0]?.message?.content ||
-      (lang === "it"
-        ? "Al momento non riesco a rispondere, riprova tra poco."
-        : "I can’t answer right now, please try again shortly.");
 
     return NextResponse.json({
       ok: true,
-      version: "chatbot_ai_v1",
-      reply,
+      version: "chatbot_ai_final",
+      reply: completion.choices[0].message.content,
     });
   } catch (e: any) {
-    console.error("[CHATBOT ERROR]", e);
+    console.error(e);
     return NextResponse.json(
       {
         ok: false,
-        error: "exception",
-        fallback: "Temporary service error.",
+        reply:
+          "Errore temporaneo del servizio. Riprova tra poco.",
       },
       { status: 500 }
     );
   }
 }
+
