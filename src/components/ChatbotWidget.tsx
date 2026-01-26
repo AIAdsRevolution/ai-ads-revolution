@@ -99,7 +99,6 @@ export default function ChatbotWidget() {
 
           email: email.trim(),
           message: msg,
-          source: typeof window !== "undefined" ? window.location.pathname : ""
         }),
       }).catch(() => {});
     }
@@ -110,11 +109,9 @@ export default function ChatbotWidget() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          source: typeof window !== "undefined" ? window.location.pathname : "",
 
           email: email.trim(),
           message: msg,
-          source: typeof window !== "undefined" ? window.location.pathname : ""
         }),
       }).catch(() => {});
     }
