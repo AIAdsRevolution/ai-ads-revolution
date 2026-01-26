@@ -1,279 +1,211 @@
 import Link from "next/link";
-import KpiLivePreview from "../components/KpiLivePreview";
 
-function Pill({ children }: { children: React.ReactNode }) {
+export default function HomePage() {
   return (
-    <span className="pro-pill" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-      {children}
-    </span>
+    <main className="min-h-screen bg-[#070A12] text-white">
+      {/* background glow */}
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <div className="absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="absolute bottom-[-220px] right-[-120px] h-[520px] w-[520px] rounded-full bg-indigo-500/20 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.10),transparent_55%)]" />
+      </div>
+
+      {/* top bar */}
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/10">
+            <span className="text-lg font-black">AI</span>
+          </span>
+          <span className="text-sm font-semibold tracking-wide text-white/90">
+            AI Ads Revolution
+          </span>
+        </Link>
+
+        <nav className="hidden items-center gap-6 text-sm text-white/70 md:flex">
+          <Link className="hover:text-white" href="/come-funziona">Come funziona</Link>
+          <Link className="hover:text-white" href="/ai-engine">AI Engine</Link>
+          <Link className="hover:text-white" href="/dashboard">Dashboard</Link>
+          <Link className="hover:text-white" href="/pricing">Pricing</Link>
+        </nav>
+
+        <div className="flex items-center gap-2">
+          <Link
+            href="/auth/login"
+            className="rounded-xl px-3 py-2 text-sm font-semibold text-white/80 hover:bg-white/10"
+          >
+            Accedi
+          </Link>
+          <Link
+            href="/register"
+            className="rounded-xl bg-white px-3 py-2 text-sm font-black text-black hover:bg-white/90"
+          >
+            Inizia
+          </Link>
+        </div>
+      </header>
+
+      {/* hero */}
+      <section className="mx-auto max-w-6xl px-4 pb-14 pt-10">
+        <div className="grid items-center gap-10 md:grid-cols-2">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/80 ring-1 ring-white/10">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              KPI live + AI + Google Ads
+            </div>
+
+            <h1 className="mt-4 text-4xl font-black leading-tight md:text-5xl">
+              Porta le tue campagne a un livello superiore con{" "}
+              <span className="bg-gradient-to-r from-blue-300 to-indigo-300 bg-clip-text text-transparent">
+                KPI & AI
+              </span>
+              .
+            </h1>
+
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-white/70">
+              AI Ads Revolution unisce dashboard KPI, integrazione Google Ads e un assistente AI
+              per capire cosa funziona e cosa fare dopo. Chiaro, veloce, operativo.
+            </p>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/ai-chatbot"
+                className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-black text-black hover:bg-white/90"
+              >
+                Richiedi una demo
+              </Link>
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center justify-center rounded-2xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/10 hover:bg-white/15"
+              >
+                Vedi la dashboard
+              </Link>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <Stat label="Setup" value="5 min" />
+              <Stat label="KPI" value="Live" />
+              <Stat label="AI" value="Operativa" />
+            </div>
+          </div>
+
+          {/* right card */}
+          <div className="rounded-3xl bg-white/5 p-5 ring-1 ring-white/10">
+            <div className="rounded-2xl bg-[#0B1022] p-5 ring-1 ring-white/10">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-bold text-white/90">KPI Overview</div>
+                <div className="text-xs text-white/60">Ultimi 28 giorni</div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <KpiCard title="Spesa" value="€ 1.240" note="↗ +12%" />
+                <KpiCard title="ROAS" value="3,4x" note="↗ +8%" />
+                <KpiCard title="CTR" value="2,1%" note="↗ +5%" />
+                <KpiCard title="Conversioni" value="126" note="↗ +18%" />
+              </div>
+
+              <div className="mt-4 rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
+                <div className="text-xs font-semibold text-white/70">AI Insight</div>
+                <div className="mt-2 text-sm text-white/80">
+                  Aumenta il budget sugli ad group con ROAS più alto e sposta le keyword
+                  low-performing verso match più specifici.
+                </div>
+                <div className="mt-3 text-xs text-white/50">
+                  (Esempio demo — dati reali dopo collegamento Google Ads)
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-2 text-xs text-white/60">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                Collegamento Google Ads per metriche reali
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-blue-400" />
+                AI Assistant per azioni consigliate
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-indigo-400" />
+                Dashboard pulita e mobile-friendly
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* sections */}
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <div className="grid gap-4 md:grid-cols-3">
+          <Feature
+            title="Dashboard KPI Live"
+            desc="Panoramica, trend, confronto periodi e focus su ROI e spesa."
+          />
+          <Feature
+            title="Google Ads Integration"
+            desc="Collega il tuo account e vedi metriche reali e riepiloghi."
+          />
+          <Feature
+            title="AI Assistant"
+            desc="Spiega i dati e suggerisce azioni pratiche per migliorare."
+          />
+        </div>
+
+        <div className="mt-10 rounded-3xl bg-white/5 p-6 ring-1 ring-white/10 md:p-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-2xl font-black">Vuoi una demo guidata?</h2>
+              <p className="mt-2 text-sm text-white/70">
+                Scrivi email + obiettivo (lead, vendite, traffico). Ti contattiamo per una demo.
+              </p>
+            </div>
+            <Link
+              href="/ai-chatbot"
+              className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-black text-black hover:bg-white/90"
+            >
+              Vai al chatbot demo
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-white/10 py-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 text-sm text-white/60 md:flex-row md:items-center md:justify-between">
+          <div>© {new Date().getFullYear()} AI Ads Revolution</div>
+          <div className="flex gap-4">
+            <Link className="hover:text-white" href="/privacy">Privacy</Link>
+            <Link className="hover:text-white" href="/termini">Termini</Link>
+            <Link className="hover:text-white" href="/cookie">Cookie</Link>
+          </div>
+        </div>
+      </footer>
+    </main>
   );
 }
 
-function Card({
-  title,
-  desc,
-  bullets,
-  href,
-  cta,
-}: {
-  title: string;
-  desc: string;
-  bullets: string[];
-  href: string;
-  cta: string;
-}) {
+function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="pro-card" style={{ padding: 18 }}>
-      <div style={{ fontWeight: 900, letterSpacing: "-0.02em", fontSize: 16 }}>{title}</div>
-      <div style={{ color: "rgba(255,255,255,.70)", fontSize: 13, marginTop: 8, lineHeight: 1.5 }}>{desc}</div>
-      <ul style={{ marginTop: 12, paddingLeft: 18, color: "rgba(255,255,255,.78)", fontSize: 13, lineHeight: 1.6 }}>
-        {bullets.map((b) => (
-          <li key={b} style={{ marginBottom: 6 }}>{b}</li>
-        ))}
-      </ul>
-      <div style={{ marginTop: 14 }}>
-        <Link className="pro-btn" href={href}>{cta}</Link>
-      </div>
+    <div className="rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
+      <div className="text-xs text-white/60">{label}</div>
+      <div className="mt-1 text-sm font-black text-white/90">{value}</div>
     </div>
   );
 }
 
-export default function HomePage() {
+function Feature({ title, desc }: { title: string; desc: string }) {
   return (
-    <main>
-      <div className="pro-container" style={{ paddingTop: 18, paddingBottom: 70 }}>
-        {/* Top Bar (Amazon-like, futuristica) */}
-        <div
-          className="pro-card-flat"
-          style={{
-            padding: 14,
-            borderRadius: 18,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-            position: "sticky",
-            top: 10,
-            zIndex: 10,
-            backdropFilter: "blur(10px)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 220 }}>
-            <div
-              className="pro-card-flat"
-              style={{
-                width: 42,
-                height: 42,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: 14,
-              }}
-              aria-label="AI Ads Revolution"
-            >
-              <div style={{ width: 16, height: 16, borderRadius: 6, background: "rgba(37,99,235,.95)" }} />
-            </div>
-            <div style={{ lineHeight: 1.1 }}>
-              <div style={{ fontWeight: 950, letterSpacing: "-0.03em" }}>AI Ads Revolution</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,.60)", marginTop: 2 }}>
-                KPI + AI • Google Ads • Decision log
-              </div>
-            </div>
-          </div>
+    <div className="rounded-3xl bg-white/5 p-5 ring-1 ring-white/10">
+      <div className="text-base font-black">{title}</div>
+      <div className="mt-2 text-sm leading-relaxed text-white/70">{desc}</div>
+    </div>
+  );
+}
 
-          {/* Search */}
-          <div style={{ flex: 1, maxWidth: 560 }}>
-            <div
-              className="pro-card-flat"
-              style={{
-                padding: "10px 12px",
-                borderRadius: 16,
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                border: "1px solid rgba(255,255,255,.09)",
-              }}
-            >
-              <span style={{ fontSize: 12, color: "rgba(255,255,255,.55)" }}>🔎</span>
-              <input
-                placeholder="Cerca: dashboard, Google Ads, report, demo…"
-                style={{
-                  width: "100%",
-                  outline: "none",
-                  border: "none",
-                  background: "transparent",
-                  color: "rgba(255,255,255,.90)",
-                  fontSize: 13,
-                }}
-              />
-              <Link className="pro-btn pro-btn-primary" href="/ai-chatbot" style={{ padding: "8px 10px" }}>
-                Chiedi all’AI
-              </Link>
-            </div>
-          </div>
-
-          {/* Nav */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
-            <Link className="pro-pill" href="/come-funziona">Come funziona</Link>
-            <Link className="pro-pill" href="/pricing">Pricing</Link>
-            <Link className="pro-pill" href="/status">Status</Link>
-            <Link className="pro-btn" href="/login">Accedi</Link>
-            <Link className="pro-btn pro-btn-primary" href="/register">Inizia</Link>
-          </div>
-        </div>
-
-        {/* HERO */}
-        <div style={{ marginTop: 18 }} className="pro-grid-2">
-          <div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
-              <Pill>AI Neural Campaign Engine</Pill>
-              <Pill>Realtime KPI</Pill>
-              <Pill>Google Ads ready</Pill>
-              <Pill>Assistente clienti</Pill>
-            </div>
-
-            <h1 className="pro-h1">
-              La tua dashboard KPI{" "}
-              <span style={{ color: "rgba(156,192,255,.95)" }}>in tempo reale</span>, con AI al tuo fianco.
-            </h1>
-
-            <p className="pro-sub">
-              AI Ads Revolution unisce monitoraggio KPI e assistente AI per aiutarti a leggere i dati, capire cosa sta succedendo
-              e scegliere i prossimi step. Per metriche reali serve collegare Google Ads.
-            </p>
-
-            <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
-              <Link className="pro-btn pro-btn-primary" href="/ai-chatbot">Richiedi demo</Link>
-              <Link className="pro-btn" href="/dashboard">Vedi dashboard</Link>
-            </div>
-
-            <div style={{ marginTop: 12, color: "rgba(255,255,255,.60)", fontSize: 12, lineHeight: 1.5 }}>
-              Nota: non facciamo promesse “magiche”. I risultati dipendono da settore, budget, creatività e tracking.
-            </div>
-
-            {/* Trust strip */}
-            <div style={{ marginTop: 20, display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <span className="pro-pill">Trasparenza: decision log</span>
-              <span className="pro-pill">Misurazione: KPI & trend</span>
-              <span className="pro-pill">Supporto: demo guidata</span>
-            </div>
-          </div>
-
-          {/* Right: preview panel */}
-          <div className="pro-card" style={{ padding: 18, overflow: "hidden" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-              <div>
-                <div style={{ fontWeight: 900, letterSpacing: "-0.02em" }}>
-                  KPI Preview (demo)
-                </div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,.65)", marginTop: 2 }}>
-                  Esempio di riepilogo • ultimi 28 giorni
-                </div>
-              </div>
-              <div className="pro-pill" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 8, height: 8, borderRadius: 99, background: "rgba(34,197,94,.9)" }} />
-                AI ON
-              </div>
-            </div>
-
-            <div style={{ marginTop: 14 }} className="pro-card-flat">
-              <div style={{ padding: 14 }}>
-                <div style={{ color: "rgba(255,255,255,.65)", fontSize: 12 }}>Preview KPI (simulata)</div>
-                <div style={{ marginTop: 10 }}>
-                  <KpiLivePreview days={28} />
-                </div>
-                <div style={{ marginTop: 10, color: "rgba(255,255,255,.55)", fontSize: 12 }}>
-                  Collegando Google Ads, i KPI diventano reali.
-                </div>
-              </div>
-            </div>
-
-            <div style={{ marginTop: 14 }} className="pro-card-flat">
-              <div style={{ padding: 14 }}>
-                <div style={{ color: "rgba(255,255,255,.65)", fontSize: 12 }}>Cosa puoi chiedere all’assistente</div>
-                <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <span className="pro-pill">“Riepilogo 28 giorni”</span>
-                  <span className="pro-pill">“Come collegare Google Ads?”</span>
-                  <span className="pro-pill">“Quali KPI guardare?”</span>
-                  <span className="pro-pill">“Voglio una demo”</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Feature grid */}
-        <div className="pro-divider" style={{ marginTop: 22 }} />
-
-        <div style={{ marginTop: 18 }}>
-          <div style={{ fontWeight: 950, letterSpacing: "-0.03em", fontSize: 18 }}>Scopri cosa fa (davvero)</div>
-          <div style={{ color: "rgba(255,255,255,.65)", fontSize: 13, marginTop: 6 }}>
-            Un approccio pratico: KPI chiari, integrazione Google Ads, assistente AI per spiegare e guidare.
-          </div>
-
-          <div className="pro-grid-3" style={{ marginTop: 14 }}>
-            <Card
-              title="Dashboard KPI Live"
-              desc="Visualizza trend e metriche chiave in un’unica dashboard."
-              bullets={[
-                "Panoramica KPI e andamento",
-                "Indicatori chiave per decisioni rapide",
-                "Vista demo o dati reali (con Google Ads)",
-              ]}
-              href="/dashboard"
-              cta="Apri dashboard"
-            />
-
-            <Card
-              title="Google Ads Integration"
-              desc="Collega l’account per ottenere metriche reali e riepiloghi periodici."
-              bullets={[
-                "Collegamento account Google",
-                "Summary e metriche reali",
-                "Base per report e insight AI",
-              ]}
-              href="/settings/google-ads"
-              cta="Collega Google Ads"
-            />
-
-            <Card
-              title="AI Assistant (Customer + Marketing)"
-              desc="Chiedi spiegazioni, prossimi step e supporto per la demo."
-              bullets={[
-                "Risposte chiare e operative",
-                "Raccoglie lead per la demo (email)",
-                "Escalation quando serve supporto umano",
-              ]}
-              href="/ai-chatbot"
-              cta="Parla con l’AI"
-            />
-          </div>
-        </div>
-
-        {/* Bottom CTA */}
-        <div style={{ marginTop: 26 }} className="pro-card">
-          <div className="pro-grid-2" style={{ alignItems: "center", padding: 18 }}>
-            <div>
-              <div style={{ fontWeight: 950, letterSpacing: "-0.03em", fontSize: 18 }}>Vuoi una demo guidata?</div>
-              <div style={{ color: "rgba(255,255,255,.70)", fontSize: 13, marginTop: 6, lineHeight: 1.5 }}>
-                Scrivi in chat cosa vuoi ottenere (lead, vendite, traffico) e lascia la tua email: ti contattiamo per una demo.
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", flexWrap: "wrap" }}>
-              <Link className="pro-btn" href="/come-funziona">Come funziona</Link>
-              <Link className="pro-btn pro-btn-primary" href="/ai-chatbot">Richiedi demo</Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div style={{ marginTop: 22, color: "rgba(255,255,255,.50)", fontSize: 12, display: "flex", gap: 14, flexWrap: "wrap" }}>
-          <Link href="/privacy" className="pro-pill">Privacy</Link>
-          <Link href="/termini" className="pro-pill">Termini</Link>
-          <Link href="/cookie" className="pro-pill">Cookie</Link>
-          <span style={{ opacity: 0.8 }}>© {new Date().getFullYear()} AI Ads Revolution</span>
-        </div>
-      </div>
-    </main>
+function KpiCard({ title, value, note }: { title: string; value: string; note: string }) {
+  return (
+    <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
+      <div className="text-xs font-semibold text-white/70">{title}</div>
+      <div className="mt-2 text-lg font-black">{value}</div>
+      <div className="mt-1 text-xs text-emerald-300">{note}</div>
+    </div>
   );
 }
