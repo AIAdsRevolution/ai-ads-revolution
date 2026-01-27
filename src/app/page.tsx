@@ -2,210 +2,133 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[#070A12] text-white">
-      {/* background glow */}
-      <div className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-blue-500/20 blur-3xl" />
-        <div className="absolute bottom-[-220px] right-[-120px] h-[520px] w-[520px] rounded-full bg-indigo-500/20 blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.10),transparent_55%)]" />
-      </div>
-
-      {/* top bar */}
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/10">
-            <span className="text-lg font-black">AI</span>
-          </span>
-          <span className="text-sm font-semibold tracking-wide text-white/90">
-            AI Ads Revolution
-          </span>
-        </Link>
-
-        <nav className="hidden items-center gap-6 text-sm text-white/70 md:flex">
-          <Link className="hover:text-white" href="/come-funziona">Come funziona</Link>
-          <Link className="hover:text-white" href="/ai-engine">AI Engine</Link>
-          <Link className="hover:text-white" href="/dashboard">Dashboard</Link>
-          <Link className="hover:text-white" href="/pricing">Pricing</Link>
-        </nav>
+    <main className="min-h-screen bg-black text-white">
+      {/* Top bar */}
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-white/10 ring-1 ring-white/10" />
+          <div>
+            <div className="text-sm font-extrabold tracking-tight">AI Ads Revolution</div>
+            <div className="text-[11px] text-white/60">KPI + AI per campagne migliori</div>
+          </div>
+        </div>
 
         <div className="flex items-center gap-2">
           <Link
-            href="/auth/login"
-            className="rounded-xl px-3 py-2 text-sm font-semibold text-white/80 hover:bg-white/10"
+            href="/pricing"
+            className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold text-white/80 hover:bg-white/10"
           >
-            Accedi
+            Prezzi
           </Link>
           <Link
-            href="/register"
-            className="rounded-xl bg-white px-3 py-2 text-sm font-black text-black hover:bg-white/90"
+            href="/ai-chatbot"
+            className="rounded-full bg-emerald-400 px-4 py-2 text-xs font-extrabold text-black hover:bg-emerald-300"
           >
-            Inizia
+            Prova l’AI
           </Link>
         </div>
-      </header>
+      </div>
 
-      {/* hero */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 pt-10">
-        <div className="grid items-center gap-10 md:grid-cols-2">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/80 ring-1 ring-white/10">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              KPI live + AI + Google Ads
-            </div>
-
-            <h1 className="mt-4 text-4xl font-black leading-tight md:text-5xl">
-              Porta le tue campagne a un livello superiore con{" "}
-              <span className="bg-gradient-to-r from-blue-300 to-indigo-300 bg-clip-text text-transparent">
-                KPI & AI
-              </span>
-              .
-            </h1>
-
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-white/70">
-              AI Ads Revolution unisce dashboard KPI, integrazione Google Ads e un assistente AI
-              per capire cosa funziona e cosa fare dopo. Chiaro, veloce, operativo.
-            </p>
-
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/ai-chatbot"
-                className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-black text-black hover:bg-white/90"
-              >
-                Richiedi una demo
-              </Link>
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center justify-center rounded-2xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/10 hover:bg-white/15"
-              >
-                Vedi la dashboard
-              </Link>
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <Stat label="Setup" value="5 min" />
-              <Stat label="KPI" value="Live" />
-              <Stat label="AI" value="Operativa" />
-            </div>
+      {/* Hero */}
+      <section className="mx-auto max-w-6xl px-5 pb-14 pt-8">
+        <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-7 md:p-10">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[11px] font-semibold text-white/70">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            Dashboard KPI + Assistente AI + Google Ads
           </div>
 
-          {/* right card */}
-          <div className="rounded-3xl bg-white/5 p-5 ring-1 ring-white/10">
-            <div className="rounded-2xl bg-[#0B1022] p-5 ring-1 ring-white/10">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-bold text-white/90">KPI Overview</div>
-                <div className="text-xs text-white/60">Ultimi 28 giorni</div>
-              </div>
+          <h1 className="mt-5 text-3xl font-black tracking-tight md:text-5xl">
+            Trasforma i dati delle campagne in decisioni chiare.
+          </h1>
 
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <KpiCard title="Spesa" value="€ 1.240" note="↗ +12%" />
-                <KpiCard title="ROAS" value="3,4x" note="↗ +8%" />
-                <KpiCard title="CTR" value="2,1%" note="↗ +5%" />
-                <KpiCard title="Conversioni" value="126" note="↗ +18%" />
-              </div>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/70 md:text-base">
+            AI Ads Revolution ti aiuta a leggere KPI reali, capire cosa sta funzionando e ottimizzare Google Ads con metodo.
+            Niente caos, solo numeri utili e azioni consigliate.
+          </p>
 
-              <div className="mt-4 rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
-                <div className="text-xs font-semibold text-white/70">AI Insight</div>
-                <div className="mt-2 text-sm text-white/80">
-                  Aumenta il budget sugli ad group con ROAS più alto e sposta le keyword
-                  low-performing verso match più specifici.
-                </div>
-                <div className="mt-3 text-xs text-white/50">
-                  (Esempio demo — dati reali dopo collegamento Google Ads)
-                </div>
-              </div>
-            </div>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/pricing"
+              className="inline-flex items-center justify-center rounded-2xl bg-emerald-400 px-6 py-3 text-sm font-extrabold text-black hover:bg-emerald-300"
+            >
+              Vedi i piani
+            </Link>
 
-            <div className="mt-4 flex flex-col gap-2 text-xs text-white/60">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                Collegamento Google Ads per metriche reali
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-blue-400" />
-                AI Assistant per azioni consigliate
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-indigo-400" />
-                Dashboard pulita e mobile-friendly
-              </div>
-            </div>
+            <Link
+              href="/ai-chatbot"
+              className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-6 py-3 text-sm font-extrabold text-white/90 hover:bg-white/10"
+            >
+              Prova l’assistente AI
+            </Link>
+          </div>
+
+          <div className="mt-5 text-xs text-white/55">
+            Nessuna promessa finta: i dati sono reali dopo il collegamento a Google Ads.
           </div>
         </div>
       </section>
 
-      {/* sections */}
-      <section className="mx-auto max-w-6xl px-4 pb-16">
+      {/* Features */}
+      <section className="mx-auto max-w-6xl px-5 pb-16">
         <div className="grid gap-4 md:grid-cols-3">
-          <Feature
-            title="Dashboard KPI Live"
-            desc="Panoramica, trend, confronto periodi e focus su ROI e spesa."
-          />
-          <Feature
-            title="Google Ads Integration"
-            desc="Collega il tuo account e vedi metriche reali e riepiloghi."
-          />
-          <Feature
-            title="AI Assistant"
-            desc="Spiega i dati e suggerisce azioni pratiche per migliorare."
-          />
-        </div>
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div className="text-sm font-extrabold">KPI chiari</div>
+            <p className="mt-2 text-sm leading-relaxed text-white/70">
+              ROAS, CPA, spesa, lead e trend. Vista pulita e comparazione periodi.
+            </p>
+          </div>
 
-        <div className="mt-10 rounded-3xl bg-white/5 p-6 ring-1 ring-white/10 md:p-8">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-2xl font-black">Vuoi una demo guidata?</h2>
-              <p className="mt-2 text-sm text-white/70">
-                Scrivi email + obiettivo (lead, vendite, traffico). Ti contattiamo per una demo.
-              </p>
-            </div>
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div className="text-sm font-extrabold">Insight AI</div>
+            <p className="mt-2 text-sm leading-relaxed text-white/70">
+              Spiegazioni semplici e suggerimenti operativi su cosa fare dopo.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div className="text-sm font-extrabold">Google Ads integrato</div>
+            <p className="mt-2 text-sm leading-relaxed text-white/70">
+              Collega l’account e visualizza metriche reali e riepiloghi (es. ultimi 28 giorni).
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="mx-auto max-w-6xl px-5 pb-16">
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-7 md:p-10">
+          <h2 className="text-xl font-black md:text-2xl">Pronto a partire?</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/70">
+            Inizia con Basic. Quando crescono campagne e budget, passi ad Advanced o Ultra.
+          </p>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
             <Link
-              href="/ai-chatbot"
-              className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-black text-black hover:bg-white/90"
+              href="/pricing"
+              className="inline-flex items-center justify-center rounded-2xl bg-emerald-400 px-6 py-3 text-sm font-extrabold text-black hover:bg-emerald-300"
             >
-              Vai al chatbot demo
+              Vai ai prezzi
+            </Link>
+            <Link
+              href="/register"
+              className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-6 py-3 text-sm font-extrabold text-white/90 hover:bg-white/10"
+            >
+              Crea account
             </Link>
           </div>
         </div>
       </section>
 
+      {/* Footer */}
       <footer className="border-t border-white/10 py-8">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 text-sm text-white/60 md:flex-row md:items-center md:justify-between">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 text-xs text-white/55 md:flex-row md:items-center md:justify-between">
           <div>© {new Date().getFullYear()} AI Ads Revolution</div>
-          <div className="flex gap-4">
-            <Link className="hover:text-white" href="/privacy">Privacy</Link>
-            <Link className="hover:text-white" href="/termini">Termini</Link>
-            <Link className="hover:text-white" href="/cookie">Cookie</Link>
+          <div className="flex gap-3">
+            <Link className="hover:text-white/80" href="/privacy">Privacy</Link>
+            <Link className="hover:text-white/80" href="/termini">Termini</Link>
+            <Link className="hover:text-white/80" href="/pricing">Prezzi</Link>
           </div>
         </div>
       </footer>
     </main>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
-      <div className="text-xs text-white/60">{label}</div>
-      <div className="mt-1 text-sm font-black text-white/90">{value}</div>
-    </div>
-  );
-}
-
-function Feature({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div className="rounded-3xl bg-white/5 p-5 ring-1 ring-white/10">
-      <div className="text-base font-black">{title}</div>
-      <div className="mt-2 text-sm leading-relaxed text-white/70">{desc}</div>
-    </div>
-  );
-}
-
-function KpiCard({ title, value, note }: { title: string; value: string; note: string }) {
-  return (
-    <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
-      <div className="text-xs font-semibold text-white/70">{title}</div>
-      <div className="mt-2 text-lg font-black">{value}</div>
-      <div className="mt-1 text-xs text-emerald-300">{note}</div>
-    </div>
   );
 }
